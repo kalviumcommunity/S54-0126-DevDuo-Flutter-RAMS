@@ -61,3 +61,8 @@ This architecture improves scalability, reliability, and usability, making the a
 * Offline-first support for low-connectivity areas
 * Parent access and analytics dashboard
 
+
+
+
+
+# [Application Design](https://drive.google.com/file/d/1B096nnVZtAUtCyuvkw_NWdU0syppB_9-/view?usp=sharing)
