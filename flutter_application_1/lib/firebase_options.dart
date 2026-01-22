@@ -44,7 +44,7 @@ class DefaultFirebaseOptions {
   static const String APIID = String.fromEnvironment('FLUTTER_APP_ID');
   static const String SENDERID = String.fromEnvironment('FLUTTER_SENDER_ID');
   static const String PROJID = String.fromEnvironment('FLUTTER_PROJ_ID');
-  static const String STORAGEBUCKER = String.fromEnvironment(
+  static const String STORAGEBUCKET = String.fromEnvironment(
     'FLUTTER_STORAGE_BUCKER',
   );
 
@@ -54,7 +54,7 @@ class DefaultFirebaseOptions {
     messagingSenderId: SENDERID,
     projectId: PROJID,
     authDomain: 'fir-auth-19b9d.firebaseapp.com',
-    storageBucket: STORAGEBUCKER,
+    storageBucket: STORAGEBUCKET,
   );
 
   static const FirebaseOptions android = FirebaseOptions(
@@ -62,7 +62,7 @@ class DefaultFirebaseOptions {
     appId: APIID,
     messagingSenderId: SENDERID,
     projectId: PROJID,
-    storageBucket: STORAGEBUCKER,
+    storageBucket: STORAGEBUCKET,
   );
 
   static const FirebaseOptions ios = FirebaseOptions(
@@ -70,7 +70,7 @@ class DefaultFirebaseOptions {
     appId: APIID,
     messagingSenderId: SENDERID,
     projectId: PROJID,
-    storageBucket: STORAGEBUCKER,
+    storageBucket: STORAGEBUCKET,
     iosClientId:
         '231792409456-cs5m2lgcdhsqmn9mtp17pbdsjg1lhr01.apps.googleusercontent.com',
     iosBundleId: 'com.example.flutterApplication1',
@@ -81,7 +81,7 @@ class DefaultFirebaseOptions {
     appId: APIID,
     messagingSenderId: SENDERID,
     projectId: PROJID,
-    storageBucket: STORAGEBUCKER,
+    storageBucket: STORAGEBUCKET,
     iosClientId:
         '231792409456-cs5m2lgcdhsqmn9mtp17pbdsjg1lhr01.apps.googleusercontent.com',
     iosBundleId: 'com.example.flutterApplication1',
@@ -93,6 +93,6 @@ class DefaultFirebaseOptions {
     messagingSenderId: SENDERID,
     projectId: PROJID,
     authDomain: 'fir-auth-19b9d.firebaseapp.com',
-    storageBucket: STORAGEBUCKER,
+    storageBucket: STORAGEBUCKET,
   );
 }
