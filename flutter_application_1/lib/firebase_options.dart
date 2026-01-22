@@ -40,49 +40,59 @@ class DefaultFirebaseOptions {
     }
   }
 
+  static const String APIKEY = String.fromEnvironment('FLUTTER_API_KEY');
+  static const String APIID = String.fromEnvironment('FLUTTER_APP_ID');
+  static const String SENDERID = String.fromEnvironment('FLUTTER_SENDER_ID');
+  static const String PROJID = String.fromEnvironment('FLUTTER_PROJ_ID');
+  static const String STORAGEBUCKET = String.fromEnvironment(
+    'FLUTTER_STORAGE_BUCKER',
+  );
+
   static const FirebaseOptions web = FirebaseOptions(
-    apiKey: 'AIzaSyB2bsJRp-0sWgI2XPQC0UOM70NxZEbEMDM',
-    appId: '1:231792409456:web:cbc3f6063b0bde48536db5',
-    messagingSenderId: '231792409456',
-    projectId: 'fir-auth-19b9d',
+    apiKey: APIKEY,
+    appId: APIID,
+    messagingSenderId: SENDERID,
+    projectId: PROJID,
     authDomain: 'fir-auth-19b9d.firebaseapp.com',
-    storageBucket: 'fir-auth-19b9d.appspot.com',
+    storageBucket: STORAGEBUCKET,
   );
 
   static const FirebaseOptions android = FirebaseOptions(
     apiKey: 'AIzaSyBWRBod3Kn5_XxnEYjWaHoTgzYQ6eEz_HQ',
-    appId: '1:231792409456:android:cf183a5ec1e31933536db5',
-    messagingSenderId: '231792409456',
-    projectId: 'fir-auth-19b9d',
-    storageBucket: 'fir-auth-19b9d.appspot.com',
+    appId: APIID,
+    messagingSenderId: SENDERID,
+    projectId: PROJID,
+    storageBucket: STORAGEBUCKET,
   );
 
   static const FirebaseOptions ios = FirebaseOptions(
     apiKey: 'AIzaSyDKZgF4CVHEXNMoiJ1EHCNzLiownCrQRbc',
-    appId: '1:231792409456:ios:4ebaa388e021227a536db5',
-    messagingSenderId: '231792409456',
-    projectId: 'fir-auth-19b9d',
-    storageBucket: 'fir-auth-19b9d.appspot.com',
-    iosClientId: '231792409456-cs5m2lgcdhsqmn9mtp17pbdsjg1lhr01.apps.googleusercontent.com',
+    appId: APIID,
+    messagingSenderId: SENDERID,
+    projectId: PROJID,
+    storageBucket: STORAGEBUCKET,
+    iosClientId:
+        '231792409456-cs5m2lgcdhsqmn9mtp17pbdsjg1lhr01.apps.googleusercontent.com',
     iosBundleId: 'com.example.flutterApplication1',
   );
 
   static const FirebaseOptions macos = FirebaseOptions(
     apiKey: 'AIzaSyDKZgF4CVHEXNMoiJ1EHCNzLiownCrQRbc',
-    appId: '1:231792409456:ios:4ebaa388e021227a536db5',
-    messagingSenderId: '231792409456',
-    projectId: 'fir-auth-19b9d',
-    storageBucket: 'fir-auth-19b9d.appspot.com',
-    iosClientId: '231792409456-cs5m2lgcdhsqmn9mtp17pbdsjg1lhr01.apps.googleusercontent.com',
+    appId: APIID,
+    messagingSenderId: SENDERID,
+    projectId: PROJID,
+    storageBucket: STORAGEBUCKET,
+    iosClientId:
+        '231792409456-cs5m2lgcdhsqmn9mtp17pbdsjg1lhr01.apps.googleusercontent.com',
     iosBundleId: 'com.example.flutterApplication1',
   );
 
   static const FirebaseOptions windows = FirebaseOptions(
     apiKey: 'AIzaSyBd_V1owBZHFDgzFYIxGtFjinEwBKYP-Rw',
-    appId: '1:231792409456:web:c337089641a69d59536db5',
-    messagingSenderId: '231792409456',
-    projectId: 'fir-auth-19b9d',
+    appId: APIID,
+    messagingSenderId: SENDERID,
+    projectId: PROJID,
     authDomain: 'fir-auth-19b9d.firebaseapp.com',
-    storageBucket: 'fir-auth-19b9d.appspot.com',
+    storageBucket: STORAGEBUCKET,
   );
 }
