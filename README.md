@@ -45,6 +45,8 @@ The app replaces error-prone paper records with a simple, secure, and real-time 
 * CI/CD is assumed via **GitHub Actions** for build and release
 * Security is enforced using **Firestore Security Rules** and authentication guards
 
+## HLD - https://whimsical.com/hld-rams-JQeH752RBvdg3hXV7YZene
+## LLD - https://whimsical.com/lld-rams-RiiMnjqaR5MRyhsaHpkLB8
 ---
 
 ## Reflection
