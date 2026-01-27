@@ -3,16 +3,17 @@ import '../../../auth_service.dart';
 import '../../../core/constants/app_colors.dart';
 import '../../../core/widgets/custom_text_field.dart';
 
-class LoginScreen extends StatefulWidget {
-  const LoginScreen({super.key});
+class SignupScreen extends StatefulWidget {
+  const SignupScreen({super.key});
 
   @override
-  State<LoginScreen> createState() => _LoginScreenState();
+  State<SignupScreen> createState() => _SignupScreenState();
 }
 
-class _LoginScreenState extends State<LoginScreen> {
+class _SignupScreenState extends State<SignupScreen> {
   final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
+  final _confirmPasswordController = TextEditingController();
   final _formKey = GlobalKey<FormState>();
   final _authService = AuthService();
   bool _isLoading = false;
@@ -22,10 +23,11 @@ class _LoginScreenState extends State<LoginScreen> {
   void dispose() {
     _emailController.dispose();
     _passwordController.dispose();
+    _confirmPasswordController.dispose();
     super.dispose();
   }
 
-  Future<void> _login() async {
+  Future<void> _signup() async {
     if (!_formKey.currentState!.validate()) return;
 
     setState(() {
@@ -34,7 +36,7 @@ class _LoginScreenState extends State<LoginScreen> {
     });
 
     try {
-      await _authService.signIn(
+      await _authService.signUp(
         _emailController.text.trim(),
         _passwordController.text,
       );
@@ -60,6 +62,13 @@ class _LoginScreenState extends State<LoginScreen> {
 
   String? _validatePassword(String? value) {
     if (value?.isEmpty ?? true) return 'Password is required';
+    if (value!.length < 6) return 'Password must be at least 6 characters';
+    return null;
+  }
+
+  String? _validateConfirmPassword(String? value) {
+    if (value?.isEmpty ?? true) return 'Confirm password';
+    if (value != _passwordController.text) return 'Passwords do not match';
     return null;
   }
 
@@ -86,7 +95,6 @@ class _LoginScreenState extends State<LoginScreen> {
               child: Column(
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  // Logo
                   Container(
                     height: 48,
                     width: 48,
@@ -96,41 +104,36 @@ class _LoginScreenState extends State<LoginScreen> {
                     ),
                     child: const Icon(Icons.school, color: Colors.white),
                   ),
-
                   const SizedBox(height: 16),
-
-                  // Title
                   const Text(
-                    'Welcome to RAMS',
+                    'Create Account',
                     style: TextStyle(
                       fontSize: 20,
                       fontWeight: FontWeight.bold,
                       color: AppColors.textDark,
                     ),
                   ),
-
                   const SizedBox(height: 24),
-
-                  // Email
                   CustomTextField(
                     hint: 'Email',
                     controller: _emailController,
                     validator: _validateEmail,
                   ),
-
                   const SizedBox(height: 16),
-
-                  // Password
                   CustomTextField(
                     hint: 'Password',
                     isPassword: true,
                     controller: _passwordController,
                     validator: _validatePassword,
                   ),
-
+                  const SizedBox(height: 16),
+                  CustomTextField(
+                    hint: 'Confirm Password',
+                    isPassword: true,
+                    controller: _confirmPasswordController,
+                    validator: _validateConfirmPassword,
+                  ),
                   const SizedBox(height: 24),
-
-                  // Error message
                   if (_errorMessage != null)
                     Padding(
                       padding: const EdgeInsets.only(bottom: 16),
@@ -140,8 +143,6 @@ class _LoginScreenState extends State<LoginScreen> {
                         textAlign: TextAlign.center,
                       ),
                     ),
-
-                  // Login Button
                   SizedBox(
                     width: double.infinity,
                     height: 48,
@@ -152,7 +153,7 @@ class _LoginScreenState extends State<LoginScreen> {
                           borderRadius: BorderRadius.circular(8),
                         ),
                       ),
-                      onPressed: _isLoading ? null : _login,
+                      onPressed: _isLoading ? null : _signup,
                       child: _isLoading
                           ? const SizedBox(
                               height: 20,
@@ -165,7 +166,7 @@ class _LoginScreenState extends State<LoginScreen> {
                               ),
                             )
                           : const Text(
-                              'Login',
+                              'Sign Up',
                               style: TextStyle(
                                 fontSize: 16,
                                 color: Colors.white,
@@ -173,20 +174,17 @@ class _LoginScreenState extends State<LoginScreen> {
                             ),
                     ),
                   ),
-
                   const SizedBox(height: 16),
-
-                  // Sign up link
                   Row(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
-                      const Text('Don\'t have an account? '),
+                      const Text('Already have an account? '),
                       GestureDetector(
                         onTap: () => Navigator.of(
                           context,
-                        ).pushReplacementNamed('/signup'),
+                        ).pushReplacementNamed('/login'),
                         child: const Text(
-                          'Sign Up',
+                          'Login',
                           style: TextStyle(
                             color: AppColors.primary,
                             fontWeight: FontWeight.bold,
@@ -194,14 +192,6 @@ class _LoginScreenState extends State<LoginScreen> {
                         ),
                       ),
                     ],
-                  ),
-
-                  const SizedBox(height: 16),
-
-                  const Text(
-                    '© 2026 RAMS. All rights reserved.',
-                    style: TextStyle(fontSize: 12, color: Colors.grey),
-                    textAlign: TextAlign.center,
                   ),
                 ],
               ),
