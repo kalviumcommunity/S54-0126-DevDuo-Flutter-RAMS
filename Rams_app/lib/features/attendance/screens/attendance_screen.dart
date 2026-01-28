@@ -12,6 +12,10 @@ class AttendanceScreen extends StatelessWidget {
         backgroundColor: Colors.white,
         foregroundColor: AppColors.textDark,
         elevation: 1,
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back),
+          onPressed: () => Navigator.of(context).pushReplacementNamed('/dashboard'), 
+        ),
       ),
       body: Center(
         child: Column(
