@@ -66,6 +66,8 @@ Make sure the env.json file is present in the root of the project.
 flutter run --dart-define-from-file=env.json
 ```
 
+---
+
 ## Reflection
 
 Integrating Firebase significantly simplified backend development for RAMS.
@@ -79,6 +81,7 @@ This architecture improves scalability, reliability, and usability, making the a
 * Firebase Storage for media uploads
 * Offline-first support for low-connectivity areas
 * Parent access and analytics dashboard
+
 
 
 
