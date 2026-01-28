@@ -57,12 +57,14 @@ Follow the steps below to run the Flutter application locally:
 ### 1️⃣ Navigate to the project directory
 ```bash
 cd .\Rams_app\
+```
+
 2️⃣ Run the application with environment variables
 Make sure the env.json file is present in the root of the project.
 
-bash
-Copy code
+```bash
 flutter run --dart-define-from-file=env.json
+```
 
 ---
 
