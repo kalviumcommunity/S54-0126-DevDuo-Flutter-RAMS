@@ -4,6 +4,7 @@ import 'firebase_options.dart';
 import 'features/auth/screens/login_screen.dart';
 import 'features/auth/screens/signup_screen.dart';
 import 'features/auth/screens/dashboard_screen.dart';
+import 'features/attendance/screens/attendance_screen.dart';
 import 'core/constants/app_colors.dart';
 
 void main() async {
@@ -28,6 +29,7 @@ class MyApp extends StatelessWidget {
         '/login': (context) => const LoginScreen(),
         '/signup': (context) => const SignupScreen(),
         '/dashboard': (context) => const DashboardScreen(),
+        '/attendance': (context) => const AttendanceScreen(),
       },
       home: const LoginScreen(),
     );
