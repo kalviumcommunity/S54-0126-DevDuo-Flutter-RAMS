@@ -6,36 +6,34 @@ class StudentDetailsScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final student =
-        ModalRoute.of(context)?.settings.arguments as Map<String, dynamic>?;
-
-    if (student == null) {
-      return Scaffold(
-        appBar: AppBar(title: const Text('Student Details')),
-        body: const Center(child: Text('No student data available')),
-      );
-    }
-
     return LayoutBuilder(
       builder: (context, constraints) {
         final bool isWide = constraints.maxWidth >= 900;
 
         return Scaffold(
           backgroundColor: const Color(0xFFF6F7F9),
-          appBar: _buildAppBar(context, student),
+          appBar: _buildAppBar(context),
           body: SingleChildScrollView(
             padding: const EdgeInsets.all(16),
             child: Center(
               child: ConstrainedBox(
-                constraints: const BoxConstraints(maxWidth: 1100),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    _buildStudentHeader(student),
-                    const SizedBox(height: 16),
-                    _buildInfoGrid(isWide),
-                  ],
-                ),
+                constraints: const BoxConstraints(maxWidth: 1200),
+                child: isWide
+                    ? Row(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Expanded(flex: 3, child: _leftColumn()),
+                          const SizedBox(width: 16),
+                          Expanded(flex: 1, child: _rightColumn()),
+                        ],
+                      )
+                    : Column(
+                        children: [
+                          _leftColumn(),
+                          const SizedBox(height: 16),
+                          _rightColumn(),
+                        ],
+                      ),
               ),
             ),
           ),
@@ -44,165 +42,207 @@ class StudentDetailsScreen extends StatelessWidget {
     );
   }
 
-  AppBar _buildAppBar(BuildContext context, Map<String, dynamic> student) {
+  AppBar _buildAppBar(BuildContext context) {
     return AppBar(
       backgroundColor: Colors.white,
       foregroundColor: AppColors.textDark,
       elevation: 1,
-      title: const Text('Student Details'),
       leading: IconButton(
         icon: const Icon(Icons.arrow_back),
-        onPressed: () => Navigator.of(context).pop(),
+        onPressed: () => Navigator.pop(context),
       ),
+      title: const Text('Students'),
     );
   }
 
-  Widget _buildStudentHeader(Map<String, dynamic> student) {
-    return Card(
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-      elevation: 0,
-      child: Padding(
-        padding: const EdgeInsets.all(20),
-        child: Row(
-          children: [
-            const CircleAvatar(
-              radius: 40,
-              backgroundColor: AppColors.primary,
-              child: Icon(Icons.person, color: Colors.white, size: 40),
-            ),
-            const SizedBox(width: 16),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    student['name'],
-                    style: const TextStyle(
-                      fontSize: 22,
-                      fontWeight: FontWeight.bold,
-                      color: AppColors.textDark,
-                    ),
-                  ),
-                  const SizedBox(height: 4),
-                  Text(
-                    student['id'],
-                    style: const TextStyle(color: Colors.grey, fontSize: 14),
-                  ),
-                  const SizedBox(height: 8),
-                  Container(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 12,
-                      vertical: 4,
-                    ),
-                    decoration: BoxDecoration(
-                      color: AppColors.primary.withOpacity(0.1),
-                      borderRadius: BorderRadius.circular(6),
-                    ),
-                    child: Text(
-                      student['class'],
-                      style: const TextStyle(
-                        color: AppColors.primary,
-                        fontSize: 13,
-                        fontWeight: FontWeight.w600,
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
+  // ---------------- LEFT COLUMN ----------------
 
-  Widget _buildInfoGrid(bool isWide) {
-    return GridView.count(
-      shrinkWrap: true,
-      crossAxisCount: isWide ? 2 : 1,
-      crossAxisSpacing: 16,
-      mainAxisSpacing: 16,
-      childAspectRatio: isWide ? 2.5 : 1.8,
-      physics: const NeverScrollableScrollPhysics(),
+  Widget _leftColumn() {
+    return Column(
       children: [
-        _buildInfoCard(
-          title: 'Personal Information',
-          icon: Icons.person_outline,
-          items: [
-            {'label': 'Date of Birth', 'value': '15 Jan 2010'},
-            {'label': 'Gender', 'value': 'Male'},
-            {'label': 'Blood Group', 'value': 'O+'},
-          ],
-        ),
+        _studentHeader(),
+        const SizedBox(height: 16),
+        _subjectMarksCard(),
+        const SizedBox(height: 16),
+        _progressChartCard(),
       ],
     );
   }
 
-  Widget _buildInfoCard({
-    required String title,
-    required IconData icon,
-    required List<Map<String, String>> items,
-  }) {
+  Widget _studentHeader() {
     return Card(
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
       elevation: 0,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+      child: Padding(
+        padding: const EdgeInsets.all(16),
+        child: Row(
+          children: [
+            const CircleAvatar(
+              radius: 28,
+              backgroundColor: AppColors.primary,
+              child: Icon(Icons.person, color: Colors.white),
+            ),
+            const SizedBox(width: 12),
+            Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: const [
+                Text(
+                  'Rohan Sharma',
+                  style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                ),
+                SizedBox(height: 4),
+                Text(
+                  'Student ID: RAMS-STD-001',
+                  style: TextStyle(color: Colors.grey, fontSize: 13),
+                ),
+              ],
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  // ---------------- SUBJECT MARKS ----------------
+
+  Widget _subjectMarksCard() {
+    return Card(
+      elevation: 0,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
       child: Padding(
         padding: const EdgeInsets.all(16),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Row(
+            const Text('Subject Marks',
+                style: TextStyle(fontWeight: FontWeight.bold)),
+            const SizedBox(height: 12),
+            const Row(
               children: [
-                Icon(icon, color: AppColors.primary, size: 22),
-                const SizedBox(width: 8),
-                Text(
-                  title,
-                  style: const TextStyle(
-                    fontSize: 16,
-                    fontWeight: FontWeight.bold,
-                    color: AppColors.textDark,
-                  ),
-                ),
+                Expanded(flex: 3, child: _Header('SUBJECT')),
+                Expanded(flex: 2, child: _Header('MARKS')),
+                Expanded(flex: 2, child: _Header('STATUS')),
               ],
             ),
+            const Divider(),
+            ..._subjects.map(_subjectRow),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _subjectRow(Map<String, dynamic> s) {
+    final Color c = s['status'] == 'Pass'
+        ? Colors.green
+        : s['status'] == 'Fail'
+            ? Colors.red
+            : Colors.orange;
+
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 6),
+      child: Row(
+        children: [
+          Expanded(flex: 3, child: Text(s['subject'])),
+          Expanded(flex: 2, child: Text(s['marks'])),
+          Expanded(
+            flex: 2,
+            child: Container(
+              padding:
+                  const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+              decoration: BoxDecoration(
+                color: c.withOpacity(0.12),
+                borderRadius: BorderRadius.circular(20),
+              ),
+              child: Text(
+                s['status'],
+                style: TextStyle(
+                    color: c, fontSize: 12, fontWeight: FontWeight.w600),
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  // ---------------- PROGRESS CHART ----------------
+
+  Widget _progressChartCard() {
+    return Card(
+      elevation: 0,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+      child: Padding(
+        padding: const EdgeInsets.all(16),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            const Text(
+              'Academic Progress Over Time',
+              style: TextStyle(fontWeight: FontWeight.bold),
+            ),
+            const SizedBox(height: 16),
+            SizedBox(
+              height: 260,
+              width: double.infinity,
+              child: CustomPaint(
+                painter: _AcademicChartPainter(),
+              ),
+            ),
             const SizedBox(height: 12),
-            const Divider(height: 1),
-            const SizedBox(height: 12),
-            Expanded(
-              child: ListView.separated(
-                shrinkWrap: true,
-                physics: const NeverScrollableScrollPhysics(),
-                itemCount: items.length,
-                separatorBuilder: (context, index) => const SizedBox(height: 8),
-                itemBuilder: (context, index) {
-                  final item = items[index];
-                  return Row(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Expanded(
-                        flex: 2,
-                        child: Text(
-                          item['label']!,
-                          style: const TextStyle(
-                            color: Colors.grey,
-                            fontSize: 13,
-                          ),
-                        ),
-                      ),
-                      Expanded(
-                        flex: 3,
-                        child: Text(
-                          item['value']!,
-                          style: const TextStyle(
-                            fontWeight: FontWeight.w500,
-                            fontSize: 13,
-                            color: AppColors.textDark,
-                          ),
-                        ),
-                      ),
-                    ],
-                  );
-                },
+            _legend(),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _legend() {
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.center,
+      children: const [
+        _LegendDot(color: Colors.orange, label: 'Mathematics'),
+        SizedBox(width: 16),
+        _LegendDot(color: Colors.teal, label: 'Science'),
+        SizedBox(width: 16),
+        _LegendDot(color: Colors.blueGrey, label: 'English'),
+      ],
+    );
+  }
+
+  // ---------------- RIGHT COLUMN ----------------
+
+  Widget _rightColumn() {
+    return Column(
+      children: [
+        _statCard('Attendance Percentage', '92%'),
+        const SizedBox(height: 16),
+        _statCard('Overall Grade Average', '85%'),
+        const SizedBox(height: 16),
+        _button('Edit Student Profile', Icons.edit, false),
+        const SizedBox(height: 10),
+        _button('View Full Attendance Record', Icons.visibility, true),
+      ],
+    );
+  }
+
+  Widget _statCard(String title, String value) {
+    return Card(
+      elevation: 0,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+      child: Padding(
+        padding: const EdgeInsets.all(16),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(title, style: const TextStyle(color: Colors.grey)),
+            const SizedBox(height: 6),
+            Text(
+              value,
+              style: const TextStyle(
+                fontSize: 28,
+                fontWeight: FontWeight.bold,
+                color: AppColors.primary,
               ),
             ),
           ],
@@ -210,4 +250,177 @@ class StudentDetailsScreen extends StatelessWidget {
       ),
     );
   }
+
+  Widget _button(String text, IconData icon, bool outlined) {
+    return SizedBox(
+      width: double.infinity,
+      child: outlined
+          ? OutlinedButton.icon(
+              onPressed: () {},
+              icon: Icon(icon),
+              label: Text(text),
+            )
+          : ElevatedButton.icon(
+              onPressed: () {},
+              icon: Icon(icon),
+              label: Text(text),
+              style: ElevatedButton.styleFrom(
+                backgroundColor: AppColors.primary,
+              ),
+            ),
+    );
+  }
+}
+
+// ---------------- DATA ----------------
+
+final List<Map<String, dynamic>> _subjects = [
+  {'subject': 'Mathematics', 'marks': '88/100', 'status': 'Pass'},
+  {'subject': 'Science', 'marks': '92/100', 'status': 'Pass'},
+  {'subject': 'English', 'marks': '75/100', 'status': 'Improvement Needed'},
+  {'subject': 'History', 'marks': '62/100', 'status': 'Fail'},
+  {'subject': 'Computer Science', 'marks': '95/100', 'status': 'Pass'},
+];
+
+// ---------------- HELPERS ----------------
+
+class _Header extends StatelessWidget {
+  final String text;
+  const _Header(this.text);
+
+  @override
+  Widget build(BuildContext context) {
+    return Text(text,
+        style: const TextStyle(fontSize: 12, color: Colors.grey));
+  }
+}
+
+class _LegendDot extends StatelessWidget {
+  final Color color;
+  final String label;
+
+  const _LegendDot({required this.color, required this.label});
+
+  @override
+  Widget build(BuildContext context) {
+    return Row(
+      children: [
+        Container(
+          width: 8,
+          height: 8,
+          decoration:
+              BoxDecoration(color: color, shape: BoxShape.circle),
+        ),
+        const SizedBox(width: 6),
+        Text(label, style: const TextStyle(fontSize: 12)),
+      ],
+    );
+  }
+}
+
+// ---------------- CHART PAINTER ----------------
+
+class _AcademicChartPainter extends CustomPainter {
+  final List<double> math = [78, 82, 85, 88];
+  final List<double> science = [81, 85, 88, 92];
+  final List<double> english = [70, 72, 74, 76];
+
+  final List<int> yAxis = [70, 76, 82, 88, 94];
+  final List<String> xAxis = ['Jan', 'Feb', 'Mar', 'Apr'];
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    final double leftPad = 36;
+    final double bottomPad = 28;
+    final double topPad = 8;
+
+    final chartHeight = size.height - bottomPad - topPad;
+    final chartWidth = size.width - leftPad;
+
+    final gridPaint = Paint()
+      ..color = Colors.grey.withOpacity(0.3)
+      ..strokeWidth = 1
+      ..style = PaintingStyle.stroke;
+
+    // Horizontal dashed grid
+    for (int i = 0; i < yAxis.length; i++) {
+      final y = topPad + chartHeight * (i / (yAxis.length - 1));
+      _drawDashedLine(
+        canvas,
+        Offset(leftPad, y),
+        Offset(size.width, y),
+        gridPaint,
+      );
+
+      final tp = TextPainter(
+        text: TextSpan(
+          text: yAxis[yAxis.length - 1 - i].toString(),
+          style: const TextStyle(fontSize: 10, color: Colors.grey),
+        ),
+        textDirection: TextDirection.ltr,
+      )..layout();
+      tp.paint(canvas, Offset(0, y - 6));
+    }
+
+    _drawLine(canvas, math, Colors.orange, size, leftPad, topPad, chartWidth,
+        chartHeight);
+    _drawLine(canvas, science, Colors.teal, size, leftPad, topPad, chartWidth,
+        chartHeight);
+    _drawLine(canvas, english, Colors.blueGrey, size, leftPad, topPad,
+        chartWidth, chartHeight);
+
+    for (int i = 0; i < xAxis.length; i++) {
+      final x = leftPad + chartWidth * (i / (xAxis.length - 1));
+      final tp = TextPainter(
+        text: TextSpan(
+          text: xAxis[i],
+          style: const TextStyle(fontSize: 10, color: Colors.grey),
+        ),
+        textDirection: TextDirection.ltr,
+      )..layout();
+      tp.paint(canvas, Offset(x - 10, size.height - 20));
+    }
+  }
+
+  void _drawLine(Canvas canvas, List<double> values, Color color, Size size,
+      double left, double top, double width, double height) {
+    final paint = Paint()
+      ..color = color
+      ..strokeWidth = 2
+      ..style = PaintingStyle.stroke;
+
+    final path = Path();
+
+    for (int i = 0; i < values.length; i++) {
+      final x = left + width * (i / (values.length - 1));
+      final y = top + height * (1 - (values[i] - 70) / 24);
+      if (i == 0) {
+        path.moveTo(x, y);
+      } else {
+        path.lineTo(x, y);
+      }
+
+      canvas.drawCircle(Offset(x, y), 3, Paint()..color = color);
+    }
+
+    canvas.drawPath(path, paint);
+  }
+
+  void _drawDashedLine(Canvas canvas, Offset start, Offset end, Paint paint) {
+    const dashWidth = 4;
+    const dashSpace = 4;
+    double dx = start.dx;
+
+    while (dx < end.dx) {
+      canvas.drawLine(
+        Offset(dx, start.dy),
+        Offset(dx + dashWidth, start.dy),
+        paint,
+      );
+      dx += dashWidth + dashSpace;
+    }
+  }
+
+  @override
+  bool shouldRepaint(covariant CustomPainter oldDelegate) => false;
 }
