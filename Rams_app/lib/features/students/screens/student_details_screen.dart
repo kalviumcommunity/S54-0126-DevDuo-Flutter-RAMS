@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../../../core/constants/app_colors.dart';
+import '../../../core/constants/breakpoints.dart';
 
 class StudentDetailsScreen extends StatelessWidget {
   const StudentDetailsScreen({super.key});
@@ -8,7 +9,7 @@ class StudentDetailsScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     return LayoutBuilder(
       builder: (context, constraints) {
-        final bool isWide = constraints.maxWidth >= 900;
+        final bool isWide = constraints.maxWidth >= Breakpoints.desktop;
 
         return Scaffold(
           backgroundColor: const Color(0xFFF6F7F9),
@@ -114,10 +115,12 @@ class StudentDetailsScreen extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            const Text('Subject Marks',
-                style: TextStyle(fontWeight: FontWeight.bold)),
+            const Text(
+              'Subject Marks',
+              style: TextStyle(fontWeight: FontWeight.bold),
+            ),
             const SizedBox(height: 12),
-            const Row(
+            Row(
               children: [
                 Expanded(flex: 3, child: _Header('SUBJECT')),
                 Expanded(flex: 2, child: _Header('MARKS')),
@@ -136,8 +139,8 @@ class StudentDetailsScreen extends StatelessWidget {
     final Color c = s['status'] == 'Pass'
         ? Colors.green
         : s['status'] == 'Fail'
-            ? Colors.red
-            : Colors.orange;
+        ? Colors.red
+        : Colors.orange;
 
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 6),
@@ -148,16 +151,18 @@ class StudentDetailsScreen extends StatelessWidget {
           Expanded(
             flex: 2,
             child: Container(
-              padding:
-                  const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
               decoration: BoxDecoration(
-                color: c.withOpacity(0.12),
+                color: c.withValues(alpha: 0.12),
                 borderRadius: BorderRadius.circular(20),
               ),
               child: Text(
                 s['status'],
                 style: TextStyle(
-                    color: c, fontSize: 12, fontWeight: FontWeight.w600),
+                  color: c,
+                  fontSize: 12,
+                  fontWeight: FontWeight.w600,
+                ),
               ),
             ),
           ),
@@ -185,9 +190,7 @@ class StudentDetailsScreen extends StatelessWidget {
             SizedBox(
               height: 260,
               width: double.infinity,
-              child: CustomPaint(
-                painter: _AcademicChartPainter(),
-              ),
+              child: CustomPaint(painter: _AcademicChartPainter()),
             ),
             const SizedBox(height: 12),
             _legend(),
@@ -200,7 +203,7 @@ class StudentDetailsScreen extends StatelessWidget {
   Widget _legend() {
     return Row(
       mainAxisAlignment: MainAxisAlignment.center,
-      children: const [
+      children: [
         _LegendDot(color: Colors.orange, label: 'Mathematics'),
         SizedBox(width: 16),
         _LegendDot(color: Colors.teal, label: 'Science'),
@@ -290,8 +293,7 @@ class _Header extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Text(text,
-        style: const TextStyle(fontSize: 12, color: Colors.grey));
+    return Text(text, style: const TextStyle(fontSize: 12, color: Colors.grey));
   }
 }
 
@@ -308,8 +310,7 @@ class _LegendDot extends StatelessWidget {
         Container(
           width: 8,
           height: 8,
-          decoration:
-              BoxDecoration(color: color, shape: BoxShape.circle),
+          decoration: BoxDecoration(color: color, shape: BoxShape.circle),
         ),
         const SizedBox(width: 6),
         Text(label, style: const TextStyle(fontSize: 12)),
@@ -338,7 +339,7 @@ class _AcademicChartPainter extends CustomPainter {
     final chartWidth = size.width - leftPad;
 
     final gridPaint = Paint()
-      ..color = Colors.grey.withOpacity(0.3)
+      ..color = Colors.grey.withValues(alpha: 0.3)
       ..strokeWidth = 1
       ..style = PaintingStyle.stroke;
 
@@ -362,12 +363,36 @@ class _AcademicChartPainter extends CustomPainter {
       tp.paint(canvas, Offset(0, y - 6));
     }
 
-    _drawLine(canvas, math, Colors.orange, size, leftPad, topPad, chartWidth,
-        chartHeight);
-    _drawLine(canvas, science, Colors.teal, size, leftPad, topPad, chartWidth,
-        chartHeight);
-    _drawLine(canvas, english, Colors.blueGrey, size, leftPad, topPad,
-        chartWidth, chartHeight);
+    _drawLine(
+      canvas,
+      math,
+      Colors.orange,
+      size,
+      leftPad,
+      topPad,
+      chartWidth,
+      chartHeight,
+    );
+    _drawLine(
+      canvas,
+      science,
+      Colors.teal,
+      size,
+      leftPad,
+      topPad,
+      chartWidth,
+      chartHeight,
+    );
+    _drawLine(
+      canvas,
+      english,
+      Colors.blueGrey,
+      size,
+      leftPad,
+      topPad,
+      chartWidth,
+      chartHeight,
+    );
 
     for (int i = 0; i < xAxis.length; i++) {
       final x = leftPad + chartWidth * (i / (xAxis.length - 1));
@@ -382,8 +407,16 @@ class _AcademicChartPainter extends CustomPainter {
     }
   }
 
-  void _drawLine(Canvas canvas, List<double> values, Color color, Size size,
-      double left, double top, double width, double height) {
+  void _drawLine(
+    Canvas canvas,
+    List<double> values,
+    Color color,
+    Size size,
+    double left,
+    double top,
+    double width,
+    double height,
+  ) {
     final paint = Paint()
       ..color = color
       ..strokeWidth = 2

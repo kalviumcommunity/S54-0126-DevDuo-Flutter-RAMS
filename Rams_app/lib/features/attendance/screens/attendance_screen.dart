@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../../../core/constants/app_colors.dart';
+import '../../../core/constants/breakpoints.dart';
 
 class AttendanceScreen extends StatefulWidget {
   const AttendanceScreen({super.key});
@@ -24,7 +25,7 @@ class _AttendanceScreenState extends State<AttendanceScreen> {
   Widget build(BuildContext context) {
     return LayoutBuilder(
       builder: (context, constraints) {
-        final bool isWide = constraints.maxWidth >= 900;
+        final bool isWide = constraints.maxWidth >= Breakpoints.desktop;
 
         return Scaffold(
           backgroundColor: const Color(0xFFF6F7F9),
@@ -102,14 +103,16 @@ class _AttendanceScreenState extends State<AttendanceScreen> {
         SizedBox(
           width: double.infinity,
           child: DropdownButtonFormField<String>(
-            value: selectedClass,
+            initialValue: selectedClass,
             decoration: const InputDecoration(
               border: OutlineInputBorder(),
               isDense: true,
             ),
-            items: ['Class 10 A', 'Class 10 B', 'Class 9 A']
-                .map((c) => DropdownMenuItem(value: c, child: Text(c)))
-                .toList(),
+            items: [
+              'Class 10 A',
+              'Class 10 B',
+              'Class 9 A',
+            ].map((c) => DropdownMenuItem(value: c, child: Text(c))).toList(),
             onChanged: (val) => setState(() => selectedClass = val!),
           ),
         ),
@@ -189,10 +192,7 @@ class _AttendanceScreenState extends State<AttendanceScreen> {
       ),
       child: Row(
         children: [
-          const CircleAvatar(
-            radius: 20,
-            child: Icon(Icons.person),
-          ),
+          const CircleAvatar(radius: 20, child: Icon(Icons.person)),
           const SizedBox(width: 12),
           Expanded(
             child: Column(
@@ -204,10 +204,7 @@ class _AttendanceScreenState extends State<AttendanceScreen> {
                 ),
                 Text(
                   student['id'],
-                  style: const TextStyle(
-                    color: Colors.grey,
-                    fontSize: 12,
-                  ),
+                  style: const TextStyle(color: Colors.grey, fontSize: 12),
                 ),
               ],
             ),
@@ -221,9 +218,8 @@ class _AttendanceScreenState extends State<AttendanceScreen> {
           ),
           Switch(
             value: student['present'],
-            activeColor: AppColors.primary,
-            onChanged: (val) =>
-                setState(() => student['present'] = val),
+            activeThumbColor: AppColors.primary,
+            onChanged: (val) => setState(() => student['present'] = val),
           ),
         ],
       ),
@@ -234,8 +230,9 @@ class _AttendanceScreenState extends State<AttendanceScreen> {
 
   Widget _buildBottomActions(bool isWide) {
     return Row(
-      mainAxisAlignment:
-          isWide ? MainAxisAlignment.end : MainAxisAlignment.center,
+      mainAxisAlignment: isWide
+          ? MainAxisAlignment.end
+          : MainAxisAlignment.center,
       children: [
         OutlinedButton(
           onPressed: () {
@@ -250,8 +247,7 @@ class _AttendanceScreenState extends State<AttendanceScreen> {
         ElevatedButton(
           style: ElevatedButton.styleFrom(
             backgroundColor: AppColors.primary,
-            padding:
-                const EdgeInsets.symmetric(horizontal: 24, vertical: 14),
+            padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 14),
           ),
           onPressed: () {},
           child: const Text('Save Attendance'),
@@ -260,6 +256,18 @@ class _AttendanceScreenState extends State<AttendanceScreen> {
     );
   }
 
-  String _month(int m) =>
-      ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'][m - 1];
+  String _month(int m) => [
+    'Jan',
+    'Feb',
+    'Mar',
+    'Apr',
+    'May',
+    'Jun',
+    'Jul',
+    'Aug',
+    'Sep',
+    'Oct',
+    'Nov',
+    'Dec',
+  ][m - 1];
 }
