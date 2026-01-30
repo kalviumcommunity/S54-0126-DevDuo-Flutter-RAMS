@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../../../core/constants/app_colors.dart';
+import '../../../core/helpers/responsive_helper.dart';
 
 class StudentsScreen extends StatefulWidget {
   const StudentsScreen({super.key});
@@ -45,7 +46,8 @@ class _StudentsScreenState extends State<StudentsScreen> {
   Widget build(BuildContext context) {
     return LayoutBuilder(
       builder: (context, constraints) {
-        final bool isWide = constraints.maxWidth >= 900;
+        final responsive = ResponsiveHelper.fromWidth(constraints.maxWidth);
+        final bool isWide = responsive.isDesktop;
 
         return Scaffold(
           backgroundColor: const Color(0xFFF6F7F9),
@@ -124,7 +126,7 @@ class _StudentsScreenState extends State<StudentsScreen> {
         SizedBox(
           width: double.infinity,
           child: DropdownButtonFormField<String>(
-            value: selectedClass,
+            initialValue: selectedClass,
             decoration: const InputDecoration(
               border: OutlineInputBorder(),
               isDense: true,
@@ -261,7 +263,7 @@ class _StudentsScreenState extends State<StudentsScreen> {
                           vertical: 2,
                         ),
                         decoration: BoxDecoration(
-                          color: AppColors.primary.withOpacity(0.1),
+                          color: AppColors.primary.withValues(alpha: 0.1),
                           borderRadius: BorderRadius.circular(4),
                         ),
                         child: Text(

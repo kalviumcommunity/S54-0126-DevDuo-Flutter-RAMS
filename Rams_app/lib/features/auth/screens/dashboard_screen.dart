@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../../../auth_service.dart';
 import '../../../core/constants/app_colors.dart';
+import '../../../core/helpers/responsive_helper.dart';
 
 class DashboardScreen extends StatefulWidget {
   const DashboardScreen({super.key});
@@ -49,8 +50,8 @@ class _DashboardScreenState extends State<DashboardScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final size = MediaQuery.of(context).size;
-    final isMobile = size.width < 768;
+    final responsive = ResponsiveHelper(context);
+    final isMobile = responsive.isMobile;
 
     return Scaffold(
       backgroundColor: AppColors.background,
@@ -60,7 +61,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
         backgroundColor: Colors.white,
         elevation: 1,
         title: Row(
-          children: const [
+          children: [
             Icon(Icons.school, color: AppColors.primary),
             SizedBox(width: 8),
             Text(
@@ -178,7 +179,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
               mainAxisSpacing: 16,
               childAspectRatio: isMobile ? 2.5 : 2.8,
               physics: const NeverScrollableScrollPhysics(),
-              children: const [
+              children: [
                 _StatCard(
                   title: 'Total Students',
                   value: '345',
@@ -207,7 +208,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
               mainAxisSpacing: 16,
               childAspectRatio: isMobile ? 3 : 3.5,
               physics: const NeverScrollableScrollPhysics(),
-              children: const [
+              children: [
                 _ActionCard(
                   title: 'Mark Attendance',
                   icon: Icons.calendar_today,
