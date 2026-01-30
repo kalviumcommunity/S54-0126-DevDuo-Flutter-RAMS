@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import '../../../auth_service.dart';
 import '../../../core/constants/app_colors.dart';
-import '../../../core/constants/breakpoints.dart';
+import '../../../core/helpers/responsive_helper.dart';
 
 class DashboardScreen extends StatefulWidget {
   const DashboardScreen({super.key});
@@ -50,8 +50,8 @@ class _DashboardScreenState extends State<DashboardScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final size = MediaQuery.of(context).size;
-    final isMobile = size.width < Breakpoints.tablet;
+    final responsive = ResponsiveHelper(context);
+    final isMobile = responsive.isMobile;
 
     return Scaffold(
       backgroundColor: AppColors.background,

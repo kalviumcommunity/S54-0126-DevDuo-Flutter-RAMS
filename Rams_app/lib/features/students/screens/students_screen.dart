@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import '../../../core/constants/app_colors.dart';
-import '../../../core/constants/breakpoints.dart';
+import '../../../core/helpers/responsive_helper.dart';
 
 class StudentsScreen extends StatefulWidget {
   const StudentsScreen({super.key});
@@ -46,7 +46,8 @@ class _StudentsScreenState extends State<StudentsScreen> {
   Widget build(BuildContext context) {
     return LayoutBuilder(
       builder: (context, constraints) {
-        final bool isWide = constraints.maxWidth >= Breakpoints.desktop;
+        final responsive = ResponsiveHelper.fromWidth(constraints.maxWidth);
+        final bool isWide = responsive.isDesktop;
 
         return Scaffold(
           backgroundColor: const Color(0xFFF6F7F9),
