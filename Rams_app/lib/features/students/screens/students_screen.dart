@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../../../core/constants/app_colors.dart';
 import '../../../core/helpers/responsive_helper.dart';
+import '../../../core/widgets/theme_toggle.dart';
 
 class StudentsScreen extends StatefulWidget {
   const StudentsScreen({super.key});
@@ -50,7 +51,7 @@ class _StudentsScreenState extends State<StudentsScreen> {
         final bool isWide = responsive.isDesktop;
 
         return Scaffold(
-          backgroundColor: const Color(0xFFF6F7F9),
+          backgroundColor: Theme.of(context).scaffoldBackgroundColor,
           appBar: _buildAppBar(context),
           body: SingleChildScrollView(
             padding: const EdgeInsets.all(16),
@@ -75,8 +76,7 @@ class _StudentsScreenState extends State<StudentsScreen> {
 
   AppBar _buildAppBar(BuildContext context) {
     return AppBar(
-      backgroundColor: Colors.white,
-      foregroundColor: AppColors.textDark,
+      // use AppBarTheme from ThemeData for colors
       elevation: 1,
       title: const Text('Students'),
       leading: IconButton(
@@ -84,6 +84,11 @@ class _StudentsScreenState extends State<StudentsScreen> {
         onPressed: () =>
             Navigator.of(context).pushReplacementNamed('/dashboard'),
       ),
+      actions: const [
+        SizedBox(width: 4),
+        ThemeToggleButton(),
+        SizedBox(width: 8),
+      ],
     );
   }
 
@@ -188,23 +193,31 @@ class _StudentsScreenState extends State<StudentsScreen> {
                 ),
                 Text(
                   '${students.length} student${students.length != 1 ? 's' : ''}',
-                  style: const TextStyle(color: Colors.grey, fontSize: 14),
+                  style: TextStyle(
+                    color: Theme.of(context).textTheme.bodySmall?.color,
+                    fontSize: 14,
+                  ),
                 ),
               ],
             ),
             const SizedBox(height: 6),
-            const Text(
+            Text(
               'Click on any student to view their details.',
-              style: TextStyle(color: Colors.grey),
+              style: TextStyle(
+                color: Theme.of(context).textTheme.bodySmall?.color,
+              ),
             ),
             const SizedBox(height: 16),
             if (students.isEmpty)
-              const Center(
+              Center(
                 child: Padding(
-                  padding: EdgeInsets.all(32.0),
+                  padding: const EdgeInsets.all(32.0),
                   child: Text(
                     'No students found',
-                    style: TextStyle(color: Colors.grey, fontSize: 16),
+                    style: TextStyle(
+                      color: Theme.of(context).textTheme.bodySmall?.color,
+                      fontSize: 16,
+                    ),
                   ),
                 ),
               )
@@ -226,7 +239,9 @@ class _StudentsScreenState extends State<StudentsScreen> {
         margin: const EdgeInsets.only(bottom: 10),
         padding: const EdgeInsets.all(12),
         decoration: BoxDecoration(
-          color: const Color(0xFFF9FAFB),
+          color: Theme.of(context).brightness == Brightness.dark
+              ? AppColors.surfaceDark
+              : const Color(0xFFF9FAFB),
           borderRadius: BorderRadius.circular(10),
           border: Border.all(color: Colors.transparent),
         ),
@@ -251,8 +266,8 @@ class _StudentsScreenState extends State<StudentsScreen> {
                     children: [
                       Text(
                         student['id'],
-                        style: const TextStyle(
-                          color: Colors.grey,
+                        style: TextStyle(
+                          color: Theme.of(context).textTheme.bodySmall?.color,
                           fontSize: 12,
                         ),
                       ),
@@ -280,7 +295,11 @@ class _StudentsScreenState extends State<StudentsScreen> {
                 ],
               ),
             ),
-            const Icon(Icons.arrow_forward_ios, size: 16, color: Colors.grey),
+            Icon(
+              Icons.arrow_forward_ios,
+              size: 16,
+              color: Theme.of(context).textTheme.bodySmall?.color,
+            ),
           ],
         ),
       ),

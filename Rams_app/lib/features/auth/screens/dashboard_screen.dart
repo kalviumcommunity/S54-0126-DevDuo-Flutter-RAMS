@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import '../../../auth_service.dart';
 import '../../../core/constants/app_colors.dart';
 import '../../../core/helpers/responsive_helper.dart';
+import '../../../core/widgets/theme_toggle.dart';
 
 class DashboardScreen extends StatefulWidget {
   const DashboardScreen({super.key});
@@ -33,13 +34,17 @@ class _DashboardScreenState extends State<DashboardScreen> {
           Icon(
             icon,
             size: 20,
-            color: isDestructive ? Colors.red : AppColors.textDark,
+            color: isDestructive
+                ? Colors.red
+                : Theme.of(context).textTheme.bodyLarge?.color,
           ),
           const SizedBox(width: 12),
           Text(
             label,
             style: TextStyle(
-              color: isDestructive ? Colors.red : AppColors.textDark,
+              color: isDestructive
+                  ? Colors.red
+                  : Theme.of(context).textTheme.bodyLarge?.color,
               fontWeight: FontWeight.w500,
             ),
           ),
@@ -54,11 +59,11 @@ class _DashboardScreenState extends State<DashboardScreen> {
     final isMobile = responsive.isMobile;
 
     return Scaffold(
-      backgroundColor: AppColors.background,
+      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
 
       // ---------------- APP BAR ----------------
       appBar: AppBar(
-        backgroundColor: Colors.white,
+        backgroundColor: Theme.of(context).appBarTheme.backgroundColor,
         elevation: 1,
         title: Row(
           children: [
@@ -67,7 +72,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
             Text(
               'RAMS',
               style: TextStyle(
-                color: AppColors.textDark,
+                color: Theme.of(context).textTheme.titleLarge?.color,
                 fontWeight: FontWeight.bold,
               ),
             ),
@@ -76,17 +81,18 @@ class _DashboardScreenState extends State<DashboardScreen> {
 
         actions: isMobile
             ? [
+                const ThemeToggleButton(),
                 IconButton(
-                  icon: const Icon(
+                  icon: Icon(
                     Icons.menu,
-                    color: AppColors.textDark,
+                    color: Theme.of(context).appBarTheme.foregroundColor,
                     size: 26,
                   ),
                   onPressed: () {
                     showMenu(
                       context: context,
                       position: const RelativeRect.fromLTRB(100, 60, 16, 0),
-                      color: Colors.white,
+                      color: Theme.of(context).cardColor,
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(12),
                       ),
@@ -143,12 +149,17 @@ class _DashboardScreenState extends State<DashboardScreen> {
                 ),
                 const _NavItem(title: 'Reports'),
                 const SizedBox(width: 16),
+                const ThemeToggleButton(),
+                const SizedBox(width: 8),
                 const CircleAvatar(
                   radius: 16,
                   child: Icon(Icons.person, size: 18),
                 ),
                 IconButton(
-                  icon: const Icon(Icons.logout, color: AppColors.textDark),
+                  icon: Icon(
+                    Icons.logout,
+                    color: Theme.of(context).appBarTheme.foregroundColor,
+                  ),
                   onPressed: _logout,
                 ),
                 const SizedBox(width: 12),
@@ -166,7 +177,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
               style: TextStyle(
                 fontSize: isMobile ? 20 : 24,
                 fontWeight: FontWeight.bold,
-                color: AppColors.textDark,
+                color: Theme.of(context).textTheme.titleLarge?.color,
               ),
             ),
             const SizedBox(height: 24),
@@ -220,10 +231,13 @@ class _DashboardScreenState extends State<DashboardScreen> {
 
             const SizedBox(height: 40),
 
-            const Center(
+            Center(
               child: Text(
                 '© 2026 RAMS. All rights reserved.',
-                style: TextStyle(fontSize: 12, color: Colors.grey),
+                style: TextStyle(
+                  fontSize: 12,
+                  color: Theme.of(context).textTheme.bodySmall?.color,
+                ),
               ),
             ),
           ],
@@ -251,7 +265,9 @@ class _NavItem extends StatelessWidget {
         child: Text(
           title,
           style: TextStyle(
-            color: selected ? AppColors.primary : AppColors.textDark,
+            color: selected
+                ? AppColors.primary
+                : Theme.of(context).textTheme.bodyLarge?.color,
             fontWeight: selected ? FontWeight.bold : FontWeight.normal,
           ),
         ),
@@ -277,9 +293,9 @@ class _StatCard extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: Theme.of(context).cardColor,
         borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: AppColors.border),
+        border: Border.all(color: Theme.of(context).dividerColor),
       ),
       child: Row(
         children: [
@@ -297,10 +313,10 @@ class _StatCard extends StatelessWidget {
                 const SizedBox(height: 4),
                 Text(
                   value,
-                  style: const TextStyle(
+                  style: TextStyle(
                     fontSize: 22,
                     fontWeight: FontWeight.bold,
-                    color: AppColors.textDark,
+                    color: Theme.of(context).textTheme.bodyLarge?.color,
                   ),
                 ),
               ],
@@ -323,7 +339,9 @@ class _ActionCard extends StatelessWidget {
   Widget build(BuildContext context) {
     return Container(
       decoration: BoxDecoration(
-        color: AppColors.primary,
+        color: Theme.of(context).brightness == Brightness.dark
+            ? AppColors.primaryDark
+            : AppColors.primary,
         borderRadius: BorderRadius.circular(12),
       ),
       child: Center(
