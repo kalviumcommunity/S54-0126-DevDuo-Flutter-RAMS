@@ -29,7 +29,7 @@ class _StudentsScreenState extends State<StudentsScreen> {
     {'name': 'Diya Malhotra', 'id': 'ID: 0012', 'class': 'Class 10 B'},
     {'name': 'Karan Verma', 'id': 'ID: 0013', 'class': 'Class 9 A'},
     {'name': 'Ishita Joshi', 'id': 'ID: 0014', 'class': 'Class 10 A'},
-    {'name': 'Aditya Rao', 'id': 'ID: 0015', 'class': 'Class 10 B'},
+    {'name': 'Sravan Teja', 'id': 'ID: 0015', 'class': 'Class 10 B'},
   ];
 
   List<Map<String, dynamic>> get filteredStudents {
