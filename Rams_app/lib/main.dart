@@ -28,28 +28,9 @@ void main() async {
   );
 }
 
-class MyApp extends StatefulWidget {
+class MyApp extends StatelessWidget {
   final ThemeController controller;
   const MyApp({required this.controller, super.key});
-
-  @override
-  State<MyApp> createState() => _MyAppState();
-}
-
-class _MyAppState extends State<MyApp> {
-  @override
-  void initState() {
-    super.initState();
-    widget.controller.addListener(_onThemeChanged);
-  }
-
-  @override
-  void dispose() {
-    widget.controller.removeListener(_onThemeChanged);
-    super.dispose();
-  }
-
-  void _onThemeChanged() => setState(() {});
 
   ThemeData _lightTheme() => ThemeData(
     brightness: Brightness.light,
@@ -135,21 +116,26 @@ class _MyAppState extends State<MyApp> {
 
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(
-      debugShowCheckedModeBanner: false,
-      title: 'RAMS',
-      theme: _lightTheme(),
-      darkTheme: _darkTheme(),
-      themeMode: widget.controller.mode,
-      routes: {
-        '/login': (context) => const LoginScreen(),
-        '/signup': (context) => const SignupScreen(),
-        '/dashboard': (context) => const DashboardScreen(),
-        '/attendance': (context) => const AttendanceScreen(),
-        '/students': (context) => const StudentsScreen(),
-        '/student-details': (context) => const StudentDetailsScreen(),
+    return AnimatedBuilder(
+      animation: controller,
+      builder: (context, _) {
+        return MaterialApp(
+          debugShowCheckedModeBanner: false,
+          title: 'RAMS',
+          theme: _lightTheme(),
+          darkTheme: _darkTheme(),
+          themeMode: controller.mode,
+          routes: {
+            '/login': (context) => const LoginScreen(),
+            '/signup': (context) => const SignupScreen(),
+            '/dashboard': (context) => const DashboardScreen(),
+            '/attendance': (context) => const AttendanceScreen(),
+            '/students': (context) => const StudentsScreen(),
+            '/student-details': (context) => const StudentDetailsScreen(),
+          },
+          home: const LoginScreen(),
+        );
       },
-      home: const LoginScreen(),
     );
   }
 }
