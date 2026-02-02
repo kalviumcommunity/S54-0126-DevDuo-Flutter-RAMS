@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../../../core/constants/app_colors.dart';
 import '../../../core/helpers/responsive_helper.dart';
+import '../../../core/widgets/theme_toggle.dart';
 
 class StudentDetailsScreen extends StatelessWidget {
   const StudentDetailsScreen({super.key});
@@ -13,7 +14,7 @@ class StudentDetailsScreen extends StatelessWidget {
         final bool isWide = responsive.isDesktop;
 
         return Scaffold(
-          backgroundColor: const Color(0xFFF6F7F9),
+          backgroundColor: Theme.of(context).scaffoldBackgroundColor,
           appBar: _buildAppBar(context),
           body: SingleChildScrollView(
             padding: const EdgeInsets.all(16),
@@ -24,16 +25,16 @@ class StudentDetailsScreen extends StatelessWidget {
                     ? Row(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          Expanded(flex: 3, child: _leftColumn()),
+                          Expanded(flex: 3, child: _leftColumn(context)),
                           const SizedBox(width: 16),
-                          Expanded(flex: 1, child: _rightColumn()),
+                          Expanded(flex: 1, child: _rightColumn(context)),
                         ],
                       )
                     : Column(
                         children: [
-                          _leftColumn(),
+                          _leftColumn(context),
                           const SizedBox(height: 16),
-                          _rightColumn(),
+                          _rightColumn(context),
                         ],
                       ),
               ),
@@ -46,32 +47,35 @@ class StudentDetailsScreen extends StatelessWidget {
 
   AppBar _buildAppBar(BuildContext context) {
     return AppBar(
-      backgroundColor: Colors.white,
-      foregroundColor: AppColors.textDark,
       elevation: 1,
       leading: IconButton(
         icon: const Icon(Icons.arrow_back),
         onPressed: () => Navigator.pop(context),
       ),
       title: const Text('Students'),
+      actions: const [
+        SizedBox(width: 4),
+        ThemeToggleButton(),
+        SizedBox(width: 8),
+      ],
     );
   }
 
   // ---------------- LEFT COLUMN ----------------
 
-  Widget _leftColumn() {
+  Widget _leftColumn(BuildContext context) {
     return Column(
       children: [
-        _studentHeader(),
+        _studentHeader(context),
         const SizedBox(height: 16),
         _subjectMarksCard(),
         const SizedBox(height: 16),
-        _progressChartCard(),
+        _progressChartCard(context),
       ],
     );
   }
 
-  Widget _studentHeader() {
+  Widget _studentHeader(BuildContext context) {
     return Card(
       elevation: 0,
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
@@ -87,7 +91,7 @@ class StudentDetailsScreen extends StatelessWidget {
             const SizedBox(width: 12),
             Column(
               crossAxisAlignment: CrossAxisAlignment.start,
-              children: const [
+              children: [
                 Text(
                   'Rohan Sharma',
                   style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
@@ -95,7 +99,10 @@ class StudentDetailsScreen extends StatelessWidget {
                 SizedBox(height: 4),
                 Text(
                   'Student ID: RAMS-STD-001',
-                  style: TextStyle(color: Colors.grey, fontSize: 13),
+                  style: TextStyle(
+                    color: Theme.of(context).textTheme.bodySmall?.color,
+                    fontSize: 13,
+                  ),
                 ),
               ],
             ),
@@ -174,7 +181,7 @@ class StudentDetailsScreen extends StatelessWidget {
 
   // ---------------- PROGRESS CHART ----------------
 
-  Widget _progressChartCard() {
+  Widget _progressChartCard(BuildContext context) {
     return Card(
       elevation: 0,
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
@@ -191,7 +198,7 @@ class StudentDetailsScreen extends StatelessWidget {
             SizedBox(
               height: 260,
               width: double.infinity,
-              child: CustomPaint(painter: _AcademicChartPainter()),
+              child: CustomPaint(painter: _AcademicChartPainter(context)),
             ),
             const SizedBox(height: 12),
             _legend(),
@@ -216,21 +223,21 @@ class StudentDetailsScreen extends StatelessWidget {
 
   // ---------------- RIGHT COLUMN ----------------
 
-  Widget _rightColumn() {
+  Widget _rightColumn(BuildContext context) {
     return Column(
       children: [
-        _statCard('Attendance Percentage', '92%'),
+        _statCard('Attendance Percentage', '92%', context),
         const SizedBox(height: 16),
-        _statCard('Overall Grade Average', '85%'),
+        _statCard('Overall Grade Average', '85%', context),
         const SizedBox(height: 16),
-        _button('Edit Student Profile', Icons.edit, false),
+        _button('Edit Student Profile', Icons.edit, false, context),
         const SizedBox(height: 10),
-        _button('View Full Attendance Record', Icons.visibility, true),
+        _button('View Full Attendance Record', Icons.visibility, true, context),
       ],
     );
   }
 
-  Widget _statCard(String title, String value) {
+  Widget _statCard(String title, String value, BuildContext context) {
     return Card(
       elevation: 0,
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
@@ -239,14 +246,21 @@ class StudentDetailsScreen extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text(title, style: const TextStyle(color: Colors.grey)),
+            Text(
+              title,
+              style: TextStyle(
+                color: Theme.of(context).textTheme.bodySmall?.color,
+              ),
+            ),
             const SizedBox(height: 6),
             Text(
               value,
-              style: const TextStyle(
+              style: TextStyle(
                 fontSize: 28,
                 fontWeight: FontWeight.bold,
-                color: AppColors.primary,
+                color: Theme.of(context).brightness == Brightness.dark
+                    ? AppColors.primaryDark
+                    : AppColors.primary,
               ),
             ),
           ],
@@ -255,7 +269,12 @@ class StudentDetailsScreen extends StatelessWidget {
     );
   }
 
-  Widget _button(String text, IconData icon, bool outlined) {
+  Widget _button(
+    String text,
+    IconData icon,
+    bool outlined,
+    BuildContext context,
+  ) {
     return SizedBox(
       width: double.infinity,
       child: outlined
@@ -269,7 +288,9 @@ class StudentDetailsScreen extends StatelessWidget {
               icon: Icon(icon),
               label: Text(text),
               style: ElevatedButton.styleFrom(
-                backgroundColor: AppColors.primary,
+                backgroundColor: Theme.of(context).brightness == Brightness.dark
+                    ? AppColors.primaryDark
+                    : AppColors.primary,
               ),
             ),
     );
@@ -294,7 +315,13 @@ class _Header extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Text(text, style: const TextStyle(fontSize: 12, color: Colors.grey));
+    return Text(
+      text,
+      style: TextStyle(
+        fontSize: 12,
+        color: Theme.of(context).textTheme.bodySmall?.color,
+      ),
+    );
   }
 }
 
@@ -323,6 +350,10 @@ class _LegendDot extends StatelessWidget {
 // ---------------- CHART PAINTER ----------------
 
 class _AcademicChartPainter extends CustomPainter {
+  final BuildContext context;
+
+  _AcademicChartPainter(this.context);
+
   final List<double> math = [78, 82, 85, 88];
   final List<double> science = [81, 85, 88, 92];
   final List<double> english = [70, 72, 74, 76];
@@ -340,7 +371,7 @@ class _AcademicChartPainter extends CustomPainter {
     final chartWidth = size.width - leftPad;
 
     final gridPaint = Paint()
-      ..color = Colors.grey.withValues(alpha: 0.3)
+      ..color = Theme.of(context).dividerColor.withValues(alpha: 0.5)
       ..strokeWidth = 1
       ..style = PaintingStyle.stroke;
 
@@ -357,7 +388,10 @@ class _AcademicChartPainter extends CustomPainter {
       final tp = TextPainter(
         text: TextSpan(
           text: yAxis[yAxis.length - 1 - i].toString(),
-          style: const TextStyle(fontSize: 10, color: Colors.grey),
+          style: TextStyle(
+            fontSize: 10,
+            color: Theme.of(context).textTheme.bodySmall?.color,
+          ),
         ),
         textDirection: TextDirection.ltr,
       )..layout();
@@ -400,7 +434,10 @@ class _AcademicChartPainter extends CustomPainter {
       final tp = TextPainter(
         text: TextSpan(
           text: xAxis[i],
-          style: const TextStyle(fontSize: 10, color: Colors.grey),
+          style: TextStyle(
+            fontSize: 10,
+            color: Theme.of(context).textTheme.bodySmall?.color,
+          ),
         ),
         textDirection: TextDirection.ltr,
       )..layout();

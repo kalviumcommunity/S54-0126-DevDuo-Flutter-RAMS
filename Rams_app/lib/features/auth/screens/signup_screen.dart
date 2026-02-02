@@ -81,7 +81,7 @@ class _SignupScreenState extends State<SignupScreen> {
             width: 380,
             padding: const EdgeInsets.all(24),
             decoration: BoxDecoration(
-              color: AppColors.white,
+              color: Theme.of(context).cardColor,
               borderRadius: BorderRadius.circular(12),
               boxShadow: [
                 BoxShadow(
@@ -105,12 +105,12 @@ class _SignupScreenState extends State<SignupScreen> {
                     child: const Icon(Icons.school, color: Colors.white),
                   ),
                   const SizedBox(height: 16),
-                  const Text(
+                  Text(
                     'Create Account',
                     style: TextStyle(
                       fontSize: 20,
                       fontWeight: FontWeight.bold,
-                      color: AppColors.textDark,
+                      color: Theme.of(context).textTheme.titleLarge?.color,
                     ),
                   ),
                   const SizedBox(height: 24),
@@ -148,7 +148,10 @@ class _SignupScreenState extends State<SignupScreen> {
                     height: 48,
                     child: ElevatedButton(
                       style: ElevatedButton.styleFrom(
-                        backgroundColor: AppColors.primary,
+                        backgroundColor:
+                            Theme.of(context).brightness == Brightness.dark
+                            ? AppColors.primaryDark
+                            : AppColors.primary,
                         shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(8),
                         ),
