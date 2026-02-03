@@ -341,15 +341,25 @@ class _AttendanceScreenState extends State<AttendanceScreen> {
             final students = await _studentService
                 .studentsStream(klass: selectedClass)
                 .first;
-            for (final s in students) {
-              try {
-                await _studentService.toggleAttendance(
-                  studentId: s.id,
-                  date: selectedDate,
-                  klass: selectedClass,
-                  present: true,
+            final futures = students.map(
+              (s) => _studentService.toggleAttendance(
+                studentId: s.id,
+                date: selectedDate,
+                klass: selectedClass,
+                present: true,
+              ),
+            );
+
+            try {
+              await Future.wait(futures);
+            } catch (e) {
+              if (mounted) {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(
+                    content: Text('Failed to mark all students present.'),
+                  ),
                 );
-              } catch (_) {}
+              }
             }
           },
           child: const Text('Mark All Present'),

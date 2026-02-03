@@ -170,7 +170,7 @@ class StudentService {
     return _todayPercentController.stream;
   }
 
-  Future<double> attendancePercentForStudent(String studentId) async {
+  double attendancePercentForStudent(String studentId) {
     int present = 0;
     int total = 0;
     _attendance.forEach((_, map) {

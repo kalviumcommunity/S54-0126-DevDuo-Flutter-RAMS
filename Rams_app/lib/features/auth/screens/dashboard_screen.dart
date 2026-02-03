@@ -195,15 +195,18 @@ class _DashboardScreenState extends State<DashboardScreen> {
                 _StatCard(
                   title: 'Total Students',
                   valueWidget: StreamBuilder<int>(
-                    stream: Stream.fromFuture(StudentService().totalStudents()),
+                    stream: StudentService().studentsStream().map(
+                      (list) => list.length,
+                    ),
                     builder: (context, snap) {
-                      if (!snap.hasData)
+                      if (!snap.hasData) {
                         return const SizedBox(
                           width: 60,
                           child: Center(
                             child: CircularProgressIndicator(strokeWidth: 2),
                           ),
                         );
+                      }
                       return Text(
                         '${snap.data}',
                         style: const TextStyle(
