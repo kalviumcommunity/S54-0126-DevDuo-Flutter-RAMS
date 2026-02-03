@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import '../../../core/constants/app_colors.dart';
 import '../../../core/helpers/responsive_helper.dart';
 import '../../../core/widgets/theme_toggle.dart';
+import '../../../services/student_service.dart';
+import '../../../models/student.dart';
 
 class AttendanceScreen extends StatefulWidget {
   const AttendanceScreen({super.key});
@@ -12,15 +14,9 @@ class AttendanceScreen extends StatefulWidget {
 
 class _AttendanceScreenState extends State<AttendanceScreen> {
   String selectedClass = 'Class 10 A';
-  DateTime selectedDate = DateTime(2026, 1, 22);
+  DateTime selectedDate = DateTime.now();
 
-  List<Map<String, dynamic>> students = [
-    {'name': 'Aarav Sharma', 'id': 'ID: 0001', 'present': true},
-    {'name': 'Priya Singh', 'id': 'ID: 0002', 'present': true},
-    {'name': 'Rahul Kumar', 'id': 'ID: 0003', 'present': false},
-    {'name': 'Sneha Gupta', 'id': 'ID: 0004', 'present': true},
-    {'name': 'Amit Patel', 'id': 'ID: 0005', 'present': false},
-  ];
+  final StudentService _studentService = StudentService();
 
   @override
   Widget build(BuildContext context) {
@@ -162,30 +158,108 @@ class _AttendanceScreenState extends State<AttendanceScreen> {
   // ---------------- STUDENT LIST ----------------
 
   Widget _buildStudentCard() {
-    return Card(
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-      elevation: 0,
-      child: Padding(
-        padding: const EdgeInsets.all(16),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            const Text(
-              'Student List',
-              style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+    return StreamBuilder<List<Student>>(
+      stream: _studentService.studentsStream(klass: selectedClass),
+      builder: (context, studentsSnap) {
+        final isLoadingStudents = !studentsSnap.hasData;
+        final students = studentsSnap.data ?? [];
+
+        return Card(
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(12),
+          ),
+          elevation: 0,
+          child: Padding(
+            padding: const EdgeInsets.all(16),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                const Text(
+                  'Student List',
+                  style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                ),
+                const SizedBox(height: 6),
+                Text(
+                  'Mark students as Present or Absent for the selected class and date.',
+                  style: TextStyle(
+                    color: Theme.of(context).textTheme.bodySmall?.color,
+                  ),
+                ),
+                const SizedBox(height: 16),
+                if (isLoadingStudents)
+                  Center(
+                    child: Padding(
+                      padding: const EdgeInsets.all(24.0),
+                      child: CircularProgressIndicator(),
+                    ),
+                  )
+                else
+                  StreamBuilder<Map<String, bool>>(
+                    stream: _studentService.attendanceStreamForDate(
+                      selectedDate,
+                      selectedClass,
+                    ),
+                    builder: (context, attSnap) {
+                      final attendance = attSnap.data ?? {};
+
+                      // DEBUG panel to inspect attendance state for troubleshooting
+                      final debugPanel = Padding(
+                        padding: const EdgeInsets.only(bottom: 8.0),
+                        child: Text(
+                          'DEBUG attendance: ${attendance.toString()}',
+                          style: TextStyle(
+                            fontSize: 12,
+                            color: Theme.of(context).textTheme.bodySmall?.color,
+                          ),
+                        ),
+                      );
+
+                      final combined = students
+                          .map(
+                            (s) => {
+                              'name': s.name,
+                              'id': s.studentId.isNotEmpty ? s.studentId : s.id,
+                              'docId': s.id,
+                              'present': attendance[s.id] ?? false,
+                            },
+                          )
+                          .toList();
+
+                      if (combined.isEmpty) {
+                        return Column(
+                          children: [
+                            debugPanel,
+                            Center(
+                              child: Padding(
+                                padding: const EdgeInsets.all(32.0),
+                                child: Text(
+                                  'No students found for this class',
+                                  style: TextStyle(
+                                    color: Theme.of(
+                                      context,
+                                    ).textTheme.bodySmall?.color,
+                                    fontSize: 16,
+                                  ),
+                                ),
+                              ),
+                            ),
+                          ],
+                        );
+                      }
+
+                      return Column(
+                        children: [
+                          debugPanel,
+                          ...combined.map(_studentTile).toList(),
+                        ],
+                      );
+                    },
+                  ),
+              ],
             ),
-            const SizedBox(height: 6),
-            Text(
-              'Mark students as Present or Absent for the selected class and date.',
-              style: TextStyle(
-                color: Theme.of(context).textTheme.bodySmall?.color,
-              ),
-            ),
-            const SizedBox(height: 16),
-            ...students.map(_studentTile),
-          ],
-        ),
-      ),
+          ),
+        );
+      },
     );
   }
 
@@ -231,15 +305,21 @@ class _AttendanceScreenState extends State<AttendanceScreen> {
           Switch(
             value: student['present'],
             activeThumbColor: AppColors.primary,
-            onChanged: (val) {
-              setState(() {
-                final index = students.indexWhere(
-                  (s) => s['id'] == student['id'],
+            onChanged: (val) async {
+              // Persist change to Firestore; UI will update via streams
+              try {
+                await _studentService.toggleAttendance(
+                  studentId: student['docId'],
+                  date: selectedDate,
+                  klass: selectedClass,
+                  present: val,
                 );
-                if (index != -1) {
-                  students[index] = {...students[index], 'present': val};
-                }
-              });
+              } catch (e) {
+                // show a simple feedback if something fails
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(content: Text('Failed to save attendance')),
+                );
+              }
             },
           ),
         ],
@@ -256,10 +336,31 @@ class _AttendanceScreenState extends State<AttendanceScreen> {
           : MainAxisAlignment.center,
       children: [
         OutlinedButton(
-          onPressed: () {
-            setState(() {
-              students = students.map((s) => {...s, 'present': true}).toList();
-            });
+          onPressed: () async {
+            // Fetch latest students for the selected class and mark them present
+            final students = await _studentService
+                .studentsStream(klass: selectedClass)
+                .first;
+            final futures = students.map(
+              (s) => _studentService.toggleAttendance(
+                studentId: s.id,
+                date: selectedDate,
+                klass: selectedClass,
+                present: true,
+              ),
+            );
+
+            try {
+              await Future.wait(futures);
+            } catch (e) {
+              if (mounted) {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(
+                    content: Text('Failed to mark all students present.'),
+                  ),
+                );
+              }
+            }
           },
           child: const Text('Mark All Present'),
         ),

@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import '../../../core/constants/app_colors.dart';
 import '../../../core/helpers/responsive_helper.dart';
 import '../../../core/widgets/theme_toggle.dart';
+import '../../../services/student_service.dart';
+import '../../../models/student.dart';
 
 class StudentsScreen extends StatefulWidget {
   const StudentsScreen({super.key});
@@ -14,33 +16,33 @@ class _StudentsScreenState extends State<StudentsScreen> {
   String selectedClass = 'All Classes';
   String searchQuery = '';
 
-  final List<Map<String, dynamic>> allStudents = [
-    {'name': 'Aarav Sharma', 'id': 'ID: 0001', 'class': 'Class 10 A'},
-    {'name': 'Priya Singh', 'id': 'ID: 0002', 'class': 'Class 10 A'},
-    {'name': 'Rahul Kumar', 'id': 'ID: 0003', 'class': 'Class 10 B'},
-    {'name': 'Sneha Gupta', 'id': 'ID: 0004', 'class': 'Class 10 A'},
-    {'name': 'Amit Patel', 'id': 'ID: 0005', 'class': 'Class 9 A'},
-    {'name': 'Neha Reddy', 'id': 'ID: 0006', 'class': 'Class 10 B'},
-    {'name': 'Vikram Mehta', 'id': 'ID: 0007', 'class': 'Class 9 A'},
-    {'name': 'Ananya Iyer', 'id': 'ID: 0008', 'class': 'Class 10 A'},
-    {'name': 'Rohan Desai', 'id': 'ID: 0009', 'class': 'Class 10 B'},
-    {'name': 'Kavya Nair', 'id': 'ID: 0010', 'class': 'Class 9 A'},
-    {'name': 'Arjun Kapoor', 'id': 'ID: 0011', 'class': 'Class 10 A'},
-    {'name': 'Diya Malhotra', 'id': 'ID: 0012', 'class': 'Class 10 B'},
-    {'name': 'Karan Verma', 'id': 'ID: 0013', 'class': 'Class 9 A'},
-    {'name': 'Ishita Joshi', 'id': 'ID: 0014', 'class': 'Class 10 A'},
-    {'name': 'Sravan Teja', 'id': 'ID: 0015', 'class': 'Class 10 B'},
-  ];
+  // Service for real data
+  final _studentService = StudentService();
 
-  List<Map<String, dynamic>> get filteredStudents {
-    return allStudents.where((student) {
-      final matchesClass =
-          selectedClass == 'All Classes' || student['class'] == selectedClass;
-      final matchesSearch = student['name'].toString().toLowerCase().contains(
-        searchQuery.toLowerCase(),
-      );
-      return matchesClass && matchesSearch;
-    }).toList();
+  // We will use a StreamBuilder in the UI to listen to students in real-time.
+  // Filtering and searching is performed client-side against the streamed list.
+
+  List<Map<String, dynamic>> _filterStudents(List<Student> students) {
+    return students
+        .map(
+          (s) => {
+            'name': s.name,
+            'id': s.studentId.isNotEmpty ? s.studentId : s.id,
+            'docId': s.id,
+            'class': s.klass,
+          },
+        )
+        .where((student) {
+          final matchesClass =
+              selectedClass == 'All Classes' ||
+              student['class'] == selectedClass;
+          final matchesSearch = student['name']
+              .toString()
+              .toLowerCase()
+              .contains(searchQuery.toLowerCase());
+          return matchesClass && matchesSearch;
+        })
+        .toList();
   }
 
   @override
@@ -174,58 +176,77 @@ class _StudentsScreenState extends State<StudentsScreen> {
   // ---------------- STUDENT LIST ----------------
 
   Widget _buildStudentListCard() {
-    final students = filteredStudents;
+    return StreamBuilder<List<Student>>(
+      stream: _studentService.studentsStream(klass: selectedClass),
+      builder: (context, snapshot) {
+        final students = snapshot.hasData
+            ? _filterStudents(snapshot.data!)
+            : <Map<String, dynamic>>[];
 
-    return Card(
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-      elevation: 0,
-      child: Padding(
-        padding: const EdgeInsets.all(16),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        return Card(
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(12),
+          ),
+          elevation: 0,
+          child: Padding(
+            padding: const EdgeInsets.all(16),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                const Text(
-                  'Student List',
-                  style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    const Text(
+                      'Student List',
+                      style: TextStyle(
+                        fontSize: 18,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                    Text(
+                      '${students.length} student${students.length != 1 ? 's' : ''}',
+                      style: TextStyle(
+                        color: Theme.of(context).textTheme.bodySmall?.color,
+                        fontSize: 14,
+                      ),
+                    ),
+                  ],
                 ),
+                const SizedBox(height: 6),
                 Text(
-                  '${students.length} student${students.length != 1 ? 's' : ''}',
+                  'Click on any student to view their details.',
                   style: TextStyle(
                     color: Theme.of(context).textTheme.bodySmall?.color,
-                    fontSize: 14,
                   ),
                 ),
+                const SizedBox(height: 16),
+                if (!snapshot.hasData)
+                  Center(
+                    child: Padding(
+                      padding: const EdgeInsets.all(24.0),
+                      child: CircularProgressIndicator(),
+                    ),
+                  )
+                else if (students.isEmpty)
+                  Center(
+                    child: Padding(
+                      padding: const EdgeInsets.all(32.0),
+                      child: Text(
+                        'No students found',
+                        style: TextStyle(
+                          color: Theme.of(context).textTheme.bodySmall?.color,
+                          fontSize: 16,
+                        ),
+                      ),
+                    ),
+                  )
+                else
+                  ...students.map(_studentTile),
               ],
             ),
-            const SizedBox(height: 6),
-            Text(
-              'Click on any student to view their details.',
-              style: TextStyle(
-                color: Theme.of(context).textTheme.bodySmall?.color,
-              ),
-            ),
-            const SizedBox(height: 16),
-            if (students.isEmpty)
-              Center(
-                child: Padding(
-                  padding: const EdgeInsets.all(32.0),
-                  child: Text(
-                    'No students found',
-                    style: TextStyle(
-                      color: Theme.of(context).textTheme.bodySmall?.color,
-                      fontSize: 16,
-                    ),
-                  ),
-                ),
-              )
-            else
-              ...students.map(_studentTile),
-          ],
-        ),
-      ),
+          ),
+        );
+      },
     );
   }
 

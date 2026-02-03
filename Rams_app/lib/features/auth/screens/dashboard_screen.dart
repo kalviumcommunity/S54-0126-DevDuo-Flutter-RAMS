@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../../../auth_service.dart';
+import '../../../services/student_service.dart';
 import '../../../core/constants/app_colors.dart';
 import '../../../core/helpers/responsive_helper.dart';
 import '../../../core/widgets/theme_toggle.dart';
@@ -193,12 +194,51 @@ class _DashboardScreenState extends State<DashboardScreen> {
               children: [
                 _StatCard(
                   title: 'Total Students',
-                  value: '345',
+                  valueWidget: StreamBuilder<int>(
+                    stream: StudentService().studentsStream().map(
+                      (list) => list.length,
+                    ),
+                    builder: (context, snap) {
+                      if (!snap.hasData) {
+                        return const SizedBox(
+                          width: 60,
+                          child: Center(
+                            child: CircularProgressIndicator(strokeWidth: 2),
+                          ),
+                        );
+                      }
+                      return Text(
+                        '${snap.data}',
+                        style: const TextStyle(
+                          fontSize: 22,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      );
+                    },
+                  ),
                   icon: Icons.groups,
                 ),
                 _StatCard(
                   title: "Today's Attendance",
-                  value: '92%',
+                  valueWidget: StreamBuilder<double>(
+                    stream: StudentService().attendancePercentForToday(),
+                    builder: (context, snap) {
+                      if (!snap.hasData)
+                        return const SizedBox(
+                          width: 60,
+                          child: Center(
+                            child: CircularProgressIndicator(strokeWidth: 2),
+                          ),
+                        );
+                      return Text(
+                        '${snap.data!.toStringAsFixed(0)}%',
+                        style: const TextStyle(
+                          fontSize: 22,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      );
+                    },
+                  ),
                   icon: Icons.check_circle,
                 ),
                 _StatCard(
@@ -279,12 +319,14 @@ class _NavItem extends StatelessWidget {
 // ---------------- STAT CARD ----------------
 class _StatCard extends StatelessWidget {
   final String title;
-  final String value;
+  final String? value;
+  final Widget? valueWidget;
   final IconData icon;
 
   const _StatCard({
     required this.title,
-    required this.value,
+    this.value,
+    this.valueWidget,
     required this.icon,
   });
 
@@ -311,14 +353,15 @@ class _StatCard extends StatelessWidget {
                   style: const TextStyle(fontSize: 13, color: Colors.grey),
                 ),
                 const SizedBox(height: 4),
-                Text(
-                  value,
-                  style: TextStyle(
-                    fontSize: 22,
-                    fontWeight: FontWeight.bold,
-                    color: Theme.of(context).textTheme.bodyLarge?.color,
-                  ),
-                ),
+                valueWidget ??
+                    Text(
+                      value ?? '',
+                      style: TextStyle(
+                        fontSize: 22,
+                        fontWeight: FontWeight.bold,
+                        color: Theme.of(context).textTheme.bodyLarge?.color,
+                      ),
+                    ),
               ],
             ),
           ),

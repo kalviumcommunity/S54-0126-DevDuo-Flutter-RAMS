@@ -2,12 +2,18 @@ import 'package:flutter/material.dart';
 import '../../../core/constants/app_colors.dart';
 import '../../../core/helpers/responsive_helper.dart';
 import '../../../core/widgets/theme_toggle.dart';
+import '../../../services/student_service.dart';
 
 class StudentDetailsScreen extends StatelessWidget {
   const StudentDetailsScreen({super.key});
 
   @override
   Widget build(BuildContext context) {
+    final Map<String, dynamic>? student =
+        ModalRoute.of(context)?.settings.arguments as Map<String, dynamic>?;
+
+    final service = StudentService();
+
     return LayoutBuilder(
       builder: (context, constraints) {
         final responsive = ResponsiveHelper.fromWidth(constraints.maxWidth);
@@ -21,20 +27,35 @@ class StudentDetailsScreen extends StatelessWidget {
             child: Center(
               child: ConstrainedBox(
                 constraints: const BoxConstraints(maxWidth: 1200),
-                child: isWide
+                child: student == null
+                    ? Center(
+                        child: Text(
+                          'No student selected',
+                          style: TextStyle(
+                            color: Theme.of(context).textTheme.bodySmall?.color,
+                          ),
+                        ),
+                      )
+                    : isWide
                     ? Row(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          Expanded(flex: 3, child: _leftColumn(context)),
+                          Expanded(
+                            flex: 3,
+                            child: _leftColumn(context, student),
+                          ),
                           const SizedBox(width: 16),
-                          Expanded(flex: 1, child: _rightColumn(context)),
+                          Expanded(
+                            flex: 1,
+                            child: _rightColumn(context, student),
+                          ),
                         ],
                       )
                     : Column(
                         children: [
-                          _leftColumn(context),
+                          _leftColumn(context, student),
                           const SizedBox(height: 16),
-                          _rightColumn(context),
+                          _rightColumn(context, student),
                         ],
                       ),
               ),
@@ -63,10 +84,10 @@ class StudentDetailsScreen extends StatelessWidget {
 
   // ---------------- LEFT COLUMN ----------------
 
-  Widget _leftColumn(BuildContext context) {
+  Widget _leftColumn(BuildContext context, Map<String, dynamic> student) {
     return Column(
       children: [
-        _studentHeader(context),
+        _studentHeader(context, student),
         const SizedBox(height: 16),
         _subjectMarksCard(),
         const SizedBox(height: 16),
@@ -75,7 +96,7 @@ class StudentDetailsScreen extends StatelessWidget {
     );
   }
 
-  Widget _studentHeader(BuildContext context) {
+  Widget _studentHeader(BuildContext context, Map<String, dynamic> student) {
     return Card(
       elevation: 0,
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
@@ -93,12 +114,12 @@ class StudentDetailsScreen extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  'Rohan Sharma',
+                  student['name'] ?? 'Unknown',
                   style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
                 ),
                 SizedBox(height: 4),
                 Text(
-                  'Student ID: RAMS-STD-001',
+                  'Student ID: ${student['id'] ?? student['docId'] ?? ''}',
                   style: TextStyle(
                     color: Theme.of(context).textTheme.bodySmall?.color,
                     fontSize: 13,
@@ -223,10 +244,22 @@ class StudentDetailsScreen extends StatelessWidget {
 
   // ---------------- RIGHT COLUMN ----------------
 
-  Widget _rightColumn(BuildContext context) {
+  Widget _rightColumn(BuildContext context, Map<String, dynamic> student) {
+    final service = StudentService();
+
     return Column(
       children: [
-        _statCard('Attendance Percentage', '92%', context),
+        StreamBuilder<double>(
+          stream: service.attendancePercentStreamForStudent(
+            student['docId'] ?? student['id'],
+          ),
+          builder: (context, snap) {
+            if (!snap.hasData)
+              return _statCard('Attendance Percentage', '–', context);
+            final percent = (snap.data ?? 0.0).toStringAsFixed(0) + '%';
+            return _statCard('Attendance Percentage', percent, context);
+          },
+        ),
         const SizedBox(height: 16),
         _statCard('Overall Grade Average', '85%', context),
         const SizedBox(height: 16),
