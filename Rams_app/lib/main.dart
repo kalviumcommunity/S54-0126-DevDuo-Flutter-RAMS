@@ -15,7 +15,8 @@ import 'features/attendance/screens/attendance_screen.dart';
 // STUDENTS
 import 'features/students/screens/students_screen.dart';
 import 'features/students/screens/student_details_screen.dart';
-import 'features/students/screens/add_student_screen.dart'; // ✅ ADDED
+import 'features/reports_screen.dart';
+import 'features/students/screens/add_student_screen.dart';
 
 // CORE
 import 'core/constants/app_colors.dart';
@@ -24,9 +25,9 @@ import 'core/widgets/theme_toggle.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  await Firebase.initializeApp(
-    options: DefaultFirebaseOptions.currentPlatform,
-  );
+  if(Firebase.apps.isEmpty){
+    await Firebase.initializeApp();
+  }
 
   final prefs = await SharedPreferences.getInstance();
   final isDark = prefs.getBool('isDarkMode') ?? false;
@@ -144,17 +145,14 @@ class MyApp extends StatelessWidget {
           darkTheme: _darkTheme(),
           themeMode: controller.mode,
 
-          // ✅ ROUTES (UPDATED)
           routes: {
             '/login': (context) => const LoginScreen(),
             '/signup': (context) => const SignupScreen(),
             '/dashboard': (context) => const DashboardScreen(),
             '/attendance': (context) => const AttendanceScreen(),
             '/students': (context) => const StudentsScreen(),
-            '/student-details': (context) =>
-                const StudentDetailsScreen(),
-
-            // ✅ ADD STUDENT ROUTE
+            '/student-details': (context) => const StudentDetailsScreen(),
+            '/reports' : (context) => const ReportsScreen(),
             '/add-student': (context) =>
                 const AddStudentScreen(),
           },

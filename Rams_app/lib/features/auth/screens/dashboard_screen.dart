@@ -121,6 +121,10 @@ class _DashboardScreenState extends State<DashboardScreen> {
                         _buildMenuItem(
                           icon: Icons.bar_chart,
                           label: 'Reports',
+                          onTap: () {
+                            Navigator.pop(context);
+                            Navigator.of(context).pushNamed('/reports');
+                          },
                         ),
                         const PopupMenuDivider(),
                         _buildMenuItem(
@@ -151,7 +155,10 @@ class _DashboardScreenState extends State<DashboardScreen> {
                   title: 'Students',
                   onTap: () => Navigator.of(context).pushNamed('/students'),
                 ),
-                const _NavItem(title: 'Reports'),
+                _NavItem(
+                  title: 'Reports',
+                  onTap: () => Navigator.of(context).pushNamed('/reports'),
+                ),
                 const SizedBox(width: 16),
                 const ThemeToggleButton(),
                 const SizedBox(width: 8),
