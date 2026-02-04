@@ -69,7 +69,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
         title: Row(
           children: [
             Icon(Icons.school, color: AppColors.primary),
-            SizedBox(width: 8),
+            const SizedBox(width: 8),
             Text(
               'RAMS',
               style: TextStyle(
@@ -206,14 +206,15 @@ class _DashboardScreenState extends State<DashboardScreen> {
                   title: 'Total Students',
                   valueWidget: StreamBuilder<int>(
                     stream: StudentService().studentsStream().map(
-                      (list) => list.length,
-                    ),
+                          (list) => list.length,
+                        ),
                     builder: (context, snap) {
                       if (!snap.hasData) {
                         return const SizedBox(
                           width: 60,
                           child: Center(
-                            child: CircularProgressIndicator(strokeWidth: 2),
+                            child:
+                                CircularProgressIndicator(strokeWidth: 2),
                           ),
                         );
                       }
@@ -231,15 +232,18 @@ class _DashboardScreenState extends State<DashboardScreen> {
                 _StatCard(
                   title: "Today's Attendance",
                   valueWidget: StreamBuilder<double>(
-                    stream: StudentService().attendancePercentForToday(),
+                    stream:
+                        StudentService().attendancePercentForToday(),
                     builder: (context, snap) {
-                      if (!snap.hasData)
+                      if (!snap.hasData) {
                         return const SizedBox(
                           width: 60,
                           child: Center(
-                            child: CircularProgressIndicator(strokeWidth: 2),
+                            child:
+                                CircularProgressIndicator(strokeWidth: 2),
                           ),
                         );
+                      }
                       return Text(
                         '${snap.data!.toStringAsFixed(0)}%',
                         style: const TextStyle(
@@ -251,7 +255,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                   ),
                   icon: Icons.check_circle,
                 ),
-                _StatCard(
+                const _StatCard(
                   title: 'Performance Alerts',
                   value: '5 Students',
                   icon: Icons.warning,
@@ -270,12 +274,21 @@ class _DashboardScreenState extends State<DashboardScreen> {
               childAspectRatio: isMobile ? 3 : 3.5,
               physics: const NeverScrollableScrollPhysics(),
               children: [
-                _ActionCard(
+                const _ActionCard(
                   title: 'Mark Attendance',
                   icon: Icons.calendar_today,
                 ),
-                _ActionCard(title: 'Add Student', icon: Icons.person_add),
-                _ActionCard(title: 'View Reports', icon: Icons.description),
+                _ActionCard(
+                  title: 'Add Student',
+                  icon: Icons.person_add,
+                  onTap: () {
+                    Navigator.of(context).pushNamed('/add-student');
+                  },
+                ),
+                const _ActionCard(
+                  title: 'View Reports',
+                  icon: Icons.description,
+                ),
               ],
             ),
 
@@ -286,7 +299,8 @@ class _DashboardScreenState extends State<DashboardScreen> {
                 '© 2026 RAMS. All rights reserved.',
                 style: TextStyle(
                   fontSize: 12,
-                  color: Theme.of(context).textTheme.bodySmall?.color,
+                  color:
+                      Theme.of(context).textTheme.bodySmall?.color,
                 ),
               ),
             ),
@@ -303,7 +317,11 @@ class _NavItem extends StatelessWidget {
   final bool selected;
   final VoidCallback? onTap;
 
-  const _NavItem({required this.title, this.selected = false, this.onTap});
+  const _NavItem({
+    required this.title,
+    this.selected = false,
+    this.onTap,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -311,14 +329,19 @@ class _NavItem extends StatelessWidget {
       onTap: onTap,
       borderRadius: BorderRadius.circular(8),
       child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+        padding:
+            const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
         child: Text(
           title,
           style: TextStyle(
             color: selected
                 ? AppColors.primary
-                : Theme.of(context).textTheme.bodyLarge?.color,
-            fontWeight: selected ? FontWeight.bold : FontWeight.normal,
+                : Theme.of(context)
+                    .textTheme
+                    .bodyLarge
+                    ?.color,
+            fontWeight:
+                selected ? FontWeight.bold : FontWeight.normal,
           ),
         ),
       ),
@@ -347,7 +370,9 @@ class _StatCard extends StatelessWidget {
       decoration: BoxDecoration(
         color: Theme.of(context).cardColor,
         borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: Theme.of(context).dividerColor),
+        border: Border.all(
+          color: Theme.of(context).dividerColor,
+        ),
       ),
       child: Row(
         children: [
@@ -360,7 +385,8 @@ class _StatCard extends StatelessWidget {
               children: [
                 Text(
                   title,
-                  style: const TextStyle(fontSize: 13, color: Colors.grey),
+                  style:
+                      const TextStyle(fontSize: 13, color: Colors.grey),
                 ),
                 const SizedBox(height: 4),
                 valueWidget ??
@@ -369,7 +395,10 @@ class _StatCard extends StatelessWidget {
                       style: TextStyle(
                         fontSize: 22,
                         fontWeight: FontWeight.bold,
-                        color: Theme.of(context).textTheme.bodyLarge?.color,
+                        color: Theme.of(context)
+                            .textTheme
+                            .bodyLarge
+                            ?.color,
                       ),
                     ),
               ],
@@ -385,33 +414,42 @@ class _StatCard extends StatelessWidget {
 class _ActionCard extends StatelessWidget {
   final String title;
   final IconData icon;
+  final VoidCallback? onTap;
 
-  const _ActionCard({required this.title, required this.icon});
+  const _ActionCard({
+    required this.title,
+    required this.icon,
+    this.onTap,
+  });
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      decoration: BoxDecoration(
-        color: Theme.of(context).brightness == Brightness.dark
-            ? AppColors.primaryDark
-            : AppColors.primary,
-        borderRadius: BorderRadius.circular(12),
-      ),
-      child: Center(
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Icon(icon, color: Colors.white, size: 28),
-            const SizedBox(height: 8),
-            Text(
-              title,
-              textAlign: TextAlign.center,
-              style: const TextStyle(
-                color: Colors.white,
-                fontWeight: FontWeight.w600,
+    return InkWell(
+      onTap: onTap,
+      borderRadius: BorderRadius.circular(12),
+      child: Container(
+        decoration: BoxDecoration(
+          color: Theme.of(context).brightness == Brightness.dark
+              ? AppColors.primaryDark
+              : AppColors.primary,
+          borderRadius: BorderRadius.circular(12),
+        ),
+        child: Center(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Icon(icon, color: Colors.white, size: 28),
+              const SizedBox(height: 8),
+              Text(
+                title,
+                textAlign: TextAlign.center,
+                style: const TextStyle(
+                  color: Colors.white,
+                  fontWeight: FontWeight.w600,
+                ),
               ),
-            ),
-          ],
+            ],
+          ),
         ),
       ),
     );
