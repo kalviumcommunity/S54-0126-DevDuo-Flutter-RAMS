@@ -1,33 +1,30 @@
 import 'dart:async';
+import 'package:cloud_firestore/cloud_firestore.dart';
 import '../models/student.dart';
 
-/// In-memory StudentService used for local-only flows during early development.
-/// Exposes the same API as the Firestore-backed version but keeps all data in
-/// memory and not persisted. It seeds sample students so UI works immediately.
+/// Firebase Firestore-backed StudentService for production use.
+/// Provides real-time student data from Firestore with CRUD operations.
+/// Attendance methods remain in-memory for now (not changed in this update).
 class StudentService {
-  // Singleton instance so in-memory data is shared across the app
+  // Singleton instance
   static final StudentService _instance = StudentService._internal();
   factory StudentService() => _instance;
 
-  // In-memory storage
-  final Map<String, Student> _students = {};
-  // attendanceKey => { studentId: present }
-  final Map<String, Map<String, bool>> _attendance = {};
+  // Firestore instance
+  final FirebaseFirestore _firestore = FirebaseFirestore.instance;
 
-  // Streams (initialized in internal constructor so we can add `onListen` callbacks)
-  late final StreamController<List<Student>> _studentsController;
+  // Collection reference
+  CollectionReference get _studentsCollection =>
+      _firestore.collection('students');
+
+  // In-memory attendance storage (keeping existing functionality)
+  final Map<String, Map<String, bool>> _attendance = {};
   late final StreamController<Map<String, Map<String, bool>>>
   _attendanceController;
   late final StreamController<double> _todayPercentController;
 
   StudentService._internal() {
-    // controllers will push current state to any new listeners immediately
-    _studentsController = StreamController<List<Student>>.broadcast(
-      onListen: () {
-        _studentsController.add(_students.values.toList());
-      },
-    );
-
+    // Initialize attendance controllers
     _attendanceController =
         StreamController<Map<String, Map<String, bool>>>.broadcast(
           onListen: () {
@@ -40,102 +37,78 @@ class StudentService {
         _emitAttendancePercent();
       },
     );
-
-    _seedSampleData();
   }
 
-  void _seedSampleData() {
-    // Only seed when empty to avoid overwriting any runtime changes
-    if (_students.isNotEmpty) return;
+  // ============ STUDENT OPERATIONS (Firebase) ============
 
-    final seeds = [
-      Student(
-        id: 's1',
-        name: 'Aarav Sharma',
-        studentId: 'ID: 0001',
-        klass: 'Class 10 A',
-      ),
-      Student(
-        id: 's2',
-        name: 'Priya Singh',
-        studentId: 'ID: 0002',
-        klass: 'Class 10 A',
-      ),
-      Student(
-        id: 's3',
-        name: 'Rahul Kumar',
-        studentId: 'ID: 0003',
-        klass: 'Class 10 B',
-      ),
-      Student(
-        id: 's4',
-        name: 'Sneha Gupta',
-        studentId: 'ID: 0004',
-        klass: 'Class 10 A',
-      ),
-      Student(
-        id: 's5',
-        name: 'Amit Patel',
-        studentId: 'ID: 0005',
-        klass: 'Class 9 A',
-      ),
-    ];
+  /// Get real-time stream of students from Firestore
+  /// Filtering and sorting is done client-side to avoid needing Firestore composite indexes
+  Stream<List<Student>> studentsStream({String? klass}) {
+    // Fetch all students without server-side filtering/ordering
+    // This avoids needing composite indexes in Firestore
+    return _studentsCollection.snapshots().map((snapshot) {
+      var students = snapshot.docs.map((doc) {
+        return Student.fromMap(doc.id, doc.data() as Map<String, dynamic>);
+      }).toList();
 
-    for (final s in seeds) {
-      _students[s.id] = s;
+      // Filter by class client-side if specified
+      if (klass != null && klass.isNotEmpty && klass != 'All Classes') {
+        students = students.where((s) => s.klass == klass).toList();
+      }
+
+      // Sort by createdAt client-side (newest first)
+      students.sort((a, b) {
+        if (a.createdAt == null && b.createdAt == null) return 0;
+        if (a.createdAt == null) return 1;
+        if (b.createdAt == null) return -1;
+        return b.createdAt!.compareTo(a.createdAt!);
+      });
+
+      return students;
+    });
+  }
+
+  /// Create a new student in Firestore
+  Future<void> createStudent(Student student) async {
+    try {
+      // If student has an ID, use it; otherwise let Firestore generate one
+      if (student.id.isNotEmpty) {
+        await _studentsCollection.doc(student.id).set(student.toMap());
+      } else {
+        await _studentsCollection.add(student.toMap());
+      }
+    } catch (e) {
+      throw Exception('Failed to create student: $e');
     }
-
-    // seed today's attendance a bit
-    final todayKey = _dateKey(DateTime.now()) + '|Class 10 A';
-    _attendance[todayKey] = {'s1': true, 's2': true, 's4': true};
-
-    _notifyStudents();
-    _notifyAttendance();
-    _emitAttendancePercent();
   }
 
-  void _notifyStudents() {
-    _studentsController.add(_students.values.toList());
+  /// Get total number of students
+  Future<int> totalStudents() async {
+    try {
+      final snapshot = await _studentsCollection.get();
+      return snapshot.docs.length;
+    } catch (e) {
+      return 0;
+    }
   }
 
-  void _notifyAttendance() {
-    _attendanceController.add(Map.unmodifiable(_attendance));
-  }
+  // ============ ATTENDANCE OPERATIONS (In-Memory - Not Changed) ============
 
-  void _emitAttendancePercent() {
+  void _emitAttendancePercent() async {
     final todayKeyPattern = _dateKey(DateTime.now());
-    final total = _students.length;
+    final total = await totalStudents();
     if (total == 0) {
       _todayPercentController.add(0.0);
       return;
     }
     int presentCount = 0;
-    int countEntries = 0;
     _attendance.forEach((k, val) {
       if (k.startsWith(todayKeyPattern)) {
-        countEntries += val.length;
         presentCount += val.values.where((v) => v).length;
       }
     });
-    // If attendance docs per-student (multiple entries per date), normalize by students
-    final percent = total == 0
-        ? 0.0
-        : (presentCount / (total == 0 ? 1 : total)) * 100.0;
+    final percent = total == 0 ? 0.0 : (presentCount / total) * 100.0;
     _todayPercentController.add(percent);
-  }
-
-  Stream<List<Student>> studentsStream({String? klass}) {
-    return _studentsController.stream.map((list) {
-      if (klass != null && klass.isNotEmpty && klass != 'All Classes') {
-        return list.where((s) => s.klass == klass).toList();
-      }
-      return list;
-    });
-  }
-
-  Future<void> createStudent(Student s) async {
-    _students[s.id] = s;
-    _notifyStudents();
   }
 
   Future<void> toggleAttendance({
@@ -148,7 +121,7 @@ class StudentService {
     final map = _attendance[dateKey] ?? {};
     map[studentId] = present;
     _attendance[dateKey] = map;
-    _notifyAttendance();
+    _attendanceController.add(Map.unmodifiable(_attendance));
     _emitAttendancePercent();
   }
 
@@ -160,10 +133,6 @@ class StudentService {
     return _attendanceController.stream.map(
       (all) => Map.unmodifiable(all[key] ?? {}),
     );
-  }
-
-  Future<int> totalStudents() async {
-    return _students.length;
   }
 
   Stream<double> attendancePercentForToday() {

@@ -122,32 +122,61 @@ class _StudentsScreenState extends State<StudentsScreen> {
   }
 
   Widget _classDropdown() {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        const Text(
-          'Filter by Class',
-          style: TextStyle(fontWeight: FontWeight.w600),
-        ),
-        const SizedBox(height: 6),
-        SizedBox(
-          width: double.infinity,
-          child: DropdownButtonFormField<String>(
-            initialValue: selectedClass,
-            decoration: const InputDecoration(
-              border: OutlineInputBorder(),
-              isDense: true,
+    return StreamBuilder<List<Student>>(
+      stream: _studentService.studentsStream(),
+      builder: (context, snapshot) {
+        // Extract unique classes from students
+        final uniqueClasses = <String>{'All Classes'};
+        if (snapshot.hasData) {
+          for (final student in snapshot.data!) {
+            if (student.klass.isNotEmpty) {
+              uniqueClasses.add(student.klass);
+            }
+          }
+        }
+
+        // Convert to sorted list (All Classes first, then alphabetically)
+        final classList = uniqueClasses.toList();
+        final allClassesItem = classList.removeAt(0); // Remove 'All Classes'
+        classList.sort(); // Sort remaining classes
+        classList.insert(0, allClassesItem); // Put 'All Classes' back at start
+
+        // Ensure selectedClass is valid, reset to 'All Classes' if not
+        if (!classList.contains(selectedClass)) {
+          WidgetsBinding.instance.addPostFrameCallback((_) {
+            if (mounted) {
+              setState(() => selectedClass = 'All Classes');
+            }
+          });
+        }
+
+        return Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            const Text(
+              'Filter by Class',
+              style: TextStyle(fontWeight: FontWeight.w600),
             ),
-            items: [
-              'All Classes',
-              'Class 10 A',
-              'Class 10 B',
-              'Class 9 A',
-            ].map((c) => DropdownMenuItem(value: c, child: Text(c))).toList(),
-            onChanged: (val) => setState(() => selectedClass = val!),
-          ),
-        ),
-      ],
+            const SizedBox(height: 6),
+            SizedBox(
+              width: double.infinity,
+              child: DropdownButtonFormField<String>(
+                value: classList.contains(selectedClass)
+                    ? selectedClass
+                    : 'All Classes',
+                decoration: const InputDecoration(
+                  border: OutlineInputBorder(),
+                  isDense: true,
+                ),
+                items: classList
+                    .map((c) => DropdownMenuItem(value: c, child: Text(c)))
+                    .toList(),
+                onChanged: (val) => setState(() => selectedClass = val!),
+              ),
+            ),
+          ],
+        );
+      },
     );
   }
 

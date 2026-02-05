@@ -1,9 +1,97 @@
 import 'package:flutter/material.dart';
 import '../../../core/constants/app_colors.dart';
 import '../../../core/helpers/responsive_helper.dart';
+import '../../../services/student_service.dart';
+import '../../../models/student.dart';
 
-class AddStudentScreen extends StatelessWidget {
+class AddStudentScreen extends StatefulWidget {
   const AddStudentScreen({super.key});
+
+  @override
+  State<AddStudentScreen> createState() => _AddStudentScreenState();
+}
+
+class _AddStudentScreenState extends State<AddStudentScreen> {
+  final _formKey = GlobalKey<FormState>();
+  final _studentService = StudentService();
+
+  // Form controllers
+  final _nameController = TextEditingController();
+  final _studentIdController = TextEditingController();
+  final _dobController = TextEditingController();
+  final _guardianNameController = TextEditingController();
+  final _guardianContactController = TextEditingController();
+  final _enrollmentDateController = TextEditingController();
+  final _notesController = TextEditingController();
+
+  String _selectedClass = 'Grade 8';
+  bool _isLoading = false;
+
+  @override
+  void dispose() {
+    _nameController.dispose();
+    _studentIdController.dispose();
+    _dobController.dispose();
+    _guardianNameController.dispose();
+    _guardianContactController.dispose();
+    _enrollmentDateController.dispose();
+    _notesController.dispose();
+    super.dispose();
+  }
+
+  Future<void> _saveStudent() async {
+    if (!_formKey.currentState!.validate()) {
+      return;
+    }
+
+    setState(() => _isLoading = true);
+
+    try {
+      final student = Student(
+        id: '', // Firestore will generate the ID
+        name: _nameController.text.trim(),
+        studentId: _studentIdController.text.trim(),
+        klass: _selectedClass,
+        dateOfBirth: _dobController.text.trim().isNotEmpty
+            ? _dobController.text.trim()
+            : null,
+        guardianName: _guardianNameController.text.trim(),
+        guardianContact: _guardianContactController.text.trim(),
+        enrollmentDate: _enrollmentDateController.text.trim().isNotEmpty
+            ? _enrollmentDateController.text.trim()
+            : null,
+        notes: _notesController.text.trim().isNotEmpty
+            ? _notesController.text.trim()
+            : null,
+        createdAt: DateTime.now(),
+      );
+
+      await _studentService.createStudent(student);
+
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Student added successfully!'),
+            backgroundColor: Colors.green,
+          ),
+        );
+        Navigator.pop(context);
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Error: ${e.toString()}'),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
+    } finally {
+      if (mounted) {
+        setState(() => _isLoading = false);
+      }
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -12,46 +100,98 @@ class AddStudentScreen extends StatelessWidget {
 
     return Scaffold(
       backgroundColor: Theme.of(context).scaffoldBackgroundColor,
-      appBar: AppBar(
-        elevation: 1,
-        title: const Text('Add Student'),
-      ),
+      appBar: AppBar(elevation: 1, title: const Text('Add Student')),
       body: SingleChildScrollView(
         padding: EdgeInsets.all(isMobile ? 16 : 24),
         child: Center(
           child: ConstrainedBox(
             constraints: const BoxConstraints(maxWidth: 520),
-            child: Container(
-              padding: const EdgeInsets.all(20),
-              decoration: BoxDecoration(
-                color: Theme.of(context).cardColor,
-                borderRadius: BorderRadius.circular(12),
-                border: Border.all(color: Theme.of(context).dividerColor),
-              ),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  _photoUpload(),
-                  const SizedBox(height: 20),
+            child: Form(
+              key: _formKey,
+              child: Container(
+                padding: const EdgeInsets.all(20),
+                decoration: BoxDecoration(
+                  color: Theme.of(context).cardColor,
+                  borderRadius: BorderRadius.circular(12),
+                  border: Border.all(color: Theme.of(context).dividerColor),
+                ),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    _photoUpload(),
+                    const SizedBox(height: 20),
 
-                  _input('Full Name', 'John Doe', required: true),
-                  _input('Student ID', 'STD12345', required: true),
-                  _dropdown('Class', ['Grade 8', 'Grade 9', 'Grade 10']),
-                  _input('Date of Birth', 'August 15th, 2005'),
-                  _input('Guardian Name', 'Jane Doe', required: true),
-                  _input('Guardian Contact', '(123) 456-7890', required: true),
-                  _input('Enrollment Date', 'September 1st, 2023'),
-                  _notes(),
+                    _input(
+                      'Full Name',
+                      'John Doe',
+                      _nameController,
+                      required: true,
+                      validator: (value) {
+                        if (value == null || value.trim().isEmpty) {
+                          return 'Please enter student name';
+                        }
+                        return null;
+                      },
+                    ),
+                    _input(
+                      'Student ID',
+                      'STD12345',
+                      _studentIdController,
+                      required: true,
+                      validator: (value) {
+                        if (value == null || value.trim().isEmpty) {
+                          return 'Please enter student ID';
+                        }
+                        return null;
+                      },
+                    ),
+                    _dropdown('Class', ['Grade 8', 'Grade 9', 'Grade 10']),
+                    _input(
+                      'Date of Birth',
+                      'August 15th, 2005',
+                      _dobController,
+                    ),
+                    _input(
+                      'Guardian Name',
+                      'Jane Doe',
+                      _guardianNameController,
+                      required: true,
+                      validator: (value) {
+                        if (value == null || value.trim().isEmpty) {
+                          return 'Please enter guardian name';
+                        }
+                        return null;
+                      },
+                    ),
+                    _input(
+                      'Guardian Contact',
+                      '(123) 456-7890',
+                      _guardianContactController,
+                      required: true,
+                      validator: (value) {
+                        if (value == null || value.trim().isEmpty) {
+                          return 'Please enter guardian contact';
+                        }
+                        return null;
+                      },
+                    ),
+                    _input(
+                      'Enrollment Date',
+                      'September 1st, 2023',
+                      _enrollmentDateController,
+                    ),
+                    _notes(),
 
-                  const SizedBox(height: 12),
-                  const Text(
-                    'Fields marked with * are required.',
-                    style: TextStyle(fontSize: 12, color: Colors.grey),
-                  ),
+                    const SizedBox(height: 12),
+                    const Text(
+                      'Fields marked with * are required.',
+                      style: TextStyle(fontSize: 12, color: Colors.grey),
+                    ),
 
-                  const SizedBox(height: 20),
-                  _actions(context),
-                ],
+                    const SizedBox(height: 20),
+                    _actions(context),
+                  ],
+                ),
               ),
             ),
           ),
@@ -89,7 +229,13 @@ class AddStudentScreen extends StatelessWidget {
   }
 
   // ---------------- INPUT ----------------
-  Widget _input(String label, String hint, {bool required = false}) {
+  Widget _input(
+    String label,
+    String hint,
+    TextEditingController controller, {
+    bool required = false,
+    String? Function(String?)? validator,
+  }) {
     return Padding(
       padding: const EdgeInsets.only(bottom: 14),
       child: Column(
@@ -98,8 +244,10 @@ class AddStudentScreen extends StatelessWidget {
           RichText(
             text: TextSpan(
               text: label,
-              style: const TextStyle(
-                color: Colors.black,
+              style: TextStyle(
+                color: Theme.of(context).brightness == Brightness.dark
+                    ? Colors.white
+                    : Colors.black,
                 fontWeight: FontWeight.w600,
               ),
               children: required
@@ -113,7 +261,9 @@ class AddStudentScreen extends StatelessWidget {
             ),
           ),
           const SizedBox(height: 6),
-          TextField(
+          TextFormField(
+            controller: controller,
+            validator: validator,
             decoration: InputDecoration(
               hintText: hint,
               border: OutlineInputBorder(
@@ -135,13 +285,15 @@ class AddStudentScreen extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           RichText(
-            text: const TextSpan(
-              text: 'Class *',
+            text: TextSpan(
+              text: 'Class',
               style: TextStyle(
-                color: Colors.black,
+                color: Theme.of(context).brightness == Brightness.dark
+                    ? Colors.white
+                    : Colors.black,
                 fontWeight: FontWeight.w600,
               ),
-              children: [
+              children: const [
                 TextSpan(
                   text: ' *',
                   style: TextStyle(color: Colors.red),
@@ -151,16 +303,11 @@ class AddStudentScreen extends StatelessWidget {
           ),
           const SizedBox(height: 6),
           DropdownButtonFormField<String>(
-            value: items.first,
+            value: _selectedClass,
             items: items
-                .map(
-                  (e) => DropdownMenuItem(
-                    value: e,
-                    child: Text(e),
-                  ),
-                )
+                .map((e) => DropdownMenuItem(value: e, child: Text(e)))
                 .toList(),
-            onChanged: (_) {},
+            onChanged: (val) => setState(() => _selectedClass = val!),
             decoration: InputDecoration(
               border: OutlineInputBorder(
                 borderRadius: BorderRadius.circular(8),
@@ -180,12 +327,10 @@ class AddStudentScreen extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Text(
-            'Notes',
-            style: TextStyle(fontWeight: FontWeight.w600),
-          ),
+          const Text('Notes', style: TextStyle(fontWeight: FontWeight.w600)),
           const SizedBox(height: 6),
-          TextField(
+          TextFormField(
+            controller: _notesController,
             maxLines: 4,
             decoration: InputDecoration(
               hintText: 'Add any additional notes about the student here.',
@@ -205,16 +350,23 @@ class AddStudentScreen extends StatelessWidget {
       mainAxisAlignment: MainAxisAlignment.end,
       children: [
         TextButton(
-          onPressed: () => Navigator.pop(context),
+          onPressed: _isLoading ? null : () => Navigator.pop(context),
           child: const Text('Cancel'),
         ),
         const SizedBox(width: 12),
         ElevatedButton(
-          onPressed: () {},
-          style: ElevatedButton.styleFrom(
-            backgroundColor: AppColors.primary,
-          ),
-          child: const Text('Save Student'),
+          onPressed: _isLoading ? null : _saveStudent,
+          style: ElevatedButton.styleFrom(backgroundColor: AppColors.primary),
+          child: _isLoading
+              ? const SizedBox(
+                  height: 16,
+                  width: 16,
+                  child: CircularProgressIndicator(
+                    strokeWidth: 2,
+                    valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+                  ),
+                )
+              : const Text('Save Student'),
         ),
       ],
     );
