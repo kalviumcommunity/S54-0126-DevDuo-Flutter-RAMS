@@ -337,7 +337,7 @@ final List<Map<String, dynamic>> _subjects = [
   {'subject': 'Science', 'marks': '92/100', 'status': 'Pass'},
   {'subject': 'English', 'marks': '75/100', 'status': 'Improvement Needed'},
   {'subject': 'History', 'marks': '62/100', 'status': 'Fail'},
-  {'subject': 'Computer Science', 'marks': '95/100', 'status': 'Pass'},
+  {'subject': 'Computer ', 'marks': '99/100', 'status': 'Pass'},
 ];
 
 // ---------------- HELPERS ----------------
