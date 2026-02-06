@@ -99,10 +99,6 @@ class _DashboardScreenState extends State<DashboardScreen> {
                       ),
                       items: <PopupMenuEntry<void>>[
                         _buildMenuItem(
-                          icon: Icons.dashboard,
-                          label: 'Dashboard',
-                        ),
-                        _buildMenuItem(
                           icon: Icons.check_circle_outline,
                           label: 'Attendance',
                           onTap: () {
@@ -183,16 +179,6 @@ class _DashboardScreenState extends State<DashboardScreen> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text(
-              'Dashboard',
-              style: TextStyle(
-                fontSize: isMobile ? 20 : 24,
-                fontWeight: FontWeight.bold,
-                color: Theme.of(context).textTheme.titleLarge?.color,
-              ),
-            ),
-            const SizedBox(height: 24),
-
             // ----------- STAT CARDS -----------
             GridView.count(
               shrinkWrap: true,
@@ -206,15 +192,14 @@ class _DashboardScreenState extends State<DashboardScreen> {
                   title: 'Total Students',
                   valueWidget: StreamBuilder<int>(
                     stream: StudentService().studentsStream().map(
-                          (list) => list.length,
-                        ),
+                      (list) => list.length,
+                    ),
                     builder: (context, snap) {
                       if (!snap.hasData) {
                         return const SizedBox(
                           width: 60,
                           child: Center(
-                            child:
-                                CircularProgressIndicator(strokeWidth: 2),
+                            child: CircularProgressIndicator(strokeWidth: 2),
                           ),
                         );
                       }
@@ -232,15 +217,13 @@ class _DashboardScreenState extends State<DashboardScreen> {
                 _StatCard(
                   title: "Today's Attendance",
                   valueWidget: StreamBuilder<double>(
-                    stream:
-                        StudentService().attendancePercentForToday(),
+                    stream: StudentService().attendancePercentForToday(),
                     builder: (context, snap) {
                       if (!snap.hasData) {
                         return const SizedBox(
                           width: 60,
                           child: Center(
-                            child:
-                                CircularProgressIndicator(strokeWidth: 2),
+                            child: CircularProgressIndicator(strokeWidth: 2),
                           ),
                         );
                       }
@@ -274,9 +257,12 @@ class _DashboardScreenState extends State<DashboardScreen> {
               childAspectRatio: isMobile ? 3 : 3.5,
               physics: const NeverScrollableScrollPhysics(),
               children: [
-                const _ActionCard(
+                _ActionCard(
                   title: 'Mark Attendance',
                   icon: Icons.calendar_today,
+                  onTap: () {
+                    Navigator.of(context).pushNamed('/attendance');
+                  },
                 ),
                 _ActionCard(
                   title: 'Add Student',
@@ -299,8 +285,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                 '© 2026 RAMS. All rights reserved.',
                 style: TextStyle(
                   fontSize: 12,
-                  color:
-                      Theme.of(context).textTheme.bodySmall?.color,
+                  color: Theme.of(context).textTheme.bodySmall?.color,
                 ),
               ),
             ),
@@ -317,11 +302,7 @@ class _NavItem extends StatelessWidget {
   final bool selected;
   final VoidCallback? onTap;
 
-  const _NavItem({
-    required this.title,
-    this.selected = false,
-    this.onTap,
-  });
+  const _NavItem({required this.title, this.selected = false, this.onTap});
 
   @override
   Widget build(BuildContext context) {
@@ -329,19 +310,14 @@ class _NavItem extends StatelessWidget {
       onTap: onTap,
       borderRadius: BorderRadius.circular(8),
       child: Padding(
-        padding:
-            const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
         child: Text(
           title,
           style: TextStyle(
             color: selected
                 ? AppColors.primary
-                : Theme.of(context)
-                    .textTheme
-                    .bodyLarge
-                    ?.color,
-            fontWeight:
-                selected ? FontWeight.bold : FontWeight.normal,
+                : Theme.of(context).textTheme.bodyLarge?.color,
+            fontWeight: selected ? FontWeight.bold : FontWeight.normal,
           ),
         ),
       ),
@@ -370,9 +346,7 @@ class _StatCard extends StatelessWidget {
       decoration: BoxDecoration(
         color: Theme.of(context).cardColor,
         borderRadius: BorderRadius.circular(12),
-        border: Border.all(
-          color: Theme.of(context).dividerColor,
-        ),
+        border: Border.all(color: Theme.of(context).dividerColor),
       ),
       child: Row(
         children: [
@@ -385,8 +359,7 @@ class _StatCard extends StatelessWidget {
               children: [
                 Text(
                   title,
-                  style:
-                      const TextStyle(fontSize: 13, color: Colors.grey),
+                  style: const TextStyle(fontSize: 13, color: Colors.grey),
                 ),
                 const SizedBox(height: 4),
                 valueWidget ??
@@ -395,10 +368,7 @@ class _StatCard extends StatelessWidget {
                       style: TextStyle(
                         fontSize: 22,
                         fontWeight: FontWeight.bold,
-                        color: Theme.of(context)
-                            .textTheme
-                            .bodyLarge
-                            ?.color,
+                        color: Theme.of(context).textTheme.bodyLarge?.color,
                       ),
                     ),
               ],
@@ -416,11 +386,7 @@ class _ActionCard extends StatelessWidget {
   final IconData icon;
   final VoidCallback? onTap;
 
-  const _ActionCard({
-    required this.title,
-    required this.icon,
-    this.onTap,
-  });
+  const _ActionCard({required this.title, required this.icon, this.onTap});
 
   @override
   Widget build(BuildContext context) {
