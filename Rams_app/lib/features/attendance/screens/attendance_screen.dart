@@ -13,7 +13,7 @@ class AttendanceScreen extends StatefulWidget {
 }
 
 class _AttendanceScreenState extends State<AttendanceScreen> {
-  String selectedClass = 'Class 10 A';
+  String selectedClass = 'All Classes';
   DateTime selectedDate = DateTime.now();
 
   final StudentService _studentService = StudentService();
@@ -96,28 +96,58 @@ class _AttendanceScreenState extends State<AttendanceScreen> {
   }
 
   Widget _classDropdown() {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        const Text('Class', style: TextStyle(fontWeight: FontWeight.w600)),
-        const SizedBox(height: 6),
-        SizedBox(
-          width: double.infinity,
-          child: DropdownButtonFormField<String>(
-            initialValue: selectedClass,
-            decoration: const InputDecoration(
-              border: OutlineInputBorder(),
-              isDense: true,
+    return StreamBuilder<List<Student>>(
+      stream: _studentService.studentsStream(),
+      builder: (context, snapshot) {
+        // Extract unique classes from students
+        final uniqueClasses = <String>{'All Classes'};
+        if (snapshot.hasData) {
+          for (final student in snapshot.data!) {
+            if (student.klass.isNotEmpty) {
+              uniqueClasses.add(student.klass);
+            }
+          }
+        }
+
+        // Convert to sorted list (All Classes first, then alphabetically)
+        final classList = uniqueClasses.toList();
+        final allClassesItem = classList.removeAt(0); // Remove 'All Classes'
+        classList.sort(); // Sort remaining classes
+        classList.insert(0, allClassesItem); // Put 'All Classes' back at start
+
+        // Ensure selectedClass is valid, reset to 'All Classes' if not
+        if (!classList.contains(selectedClass)) {
+          WidgetsBinding.instance.addPostFrameCallback((_) {
+            if (mounted) {
+              setState(() => selectedClass = 'All Classes');
+            }
+          });
+        }
+
+        return Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            const Text('Class', style: TextStyle(fontWeight: FontWeight.w600)),
+            const SizedBox(height: 6),
+            SizedBox(
+              width: double.infinity,
+              child: DropdownButtonFormField<String>(
+                value: classList.contains(selectedClass)
+                    ? selectedClass
+                    : 'All Classes',
+                decoration: const InputDecoration(
+                  border: OutlineInputBorder(),
+                  isDense: true,
+                ),
+                items: classList
+                    .map((c) => DropdownMenuItem(value: c, child: Text(c)))
+                    .toList(),
+                onChanged: (val) => setState(() => selectedClass = val!),
+              ),
             ),
-            items: [
-              'Class 10 A',
-              'Class 10 B',
-              'Class 9 A',
-            ].map((c) => DropdownMenuItem(value: c, child: Text(c))).toList(),
-            onChanged: (val) => setState(() => selectedClass = val!),
-          ),
-        ),
-      ],
+          ],
+        );
+      },
     );
   }
 
@@ -159,7 +189,9 @@ class _AttendanceScreenState extends State<AttendanceScreen> {
 
   Widget _buildStudentCard() {
     return StreamBuilder<List<Student>>(
-      stream: _studentService.studentsStream(klass: selectedClass),
+      stream: _studentService.studentsStream(
+        klass: selectedClass == 'All Classes' ? null : selectedClass,
+      ),
       builder: (context, studentsSnap) {
         final isLoadingStudents = !studentsSnap.hasData;
         final students = studentsSnap.data ?? [];
@@ -197,22 +229,10 @@ class _AttendanceScreenState extends State<AttendanceScreen> {
                   StreamBuilder<Map<String, bool>>(
                     stream: _studentService.attendanceStreamForDate(
                       selectedDate,
-                      selectedClass,
+                      selectedClass == 'All Classes' ? null : selectedClass,
                     ),
                     builder: (context, attSnap) {
                       final attendance = attSnap.data ?? {};
-
-                      // DEBUG panel to inspect attendance state for troubleshooting
-                      final debugPanel = Padding(
-                        padding: const EdgeInsets.only(bottom: 8.0),
-                        child: Text(
-                          'DEBUG attendance: ${attendance.toString()}',
-                          style: TextStyle(
-                            fontSize: 12,
-                            color: Theme.of(context).textTheme.bodySmall?.color,
-                          ),
-                        ),
-                      );
 
                       final combined = students
                           .map(
@@ -220,38 +240,31 @@ class _AttendanceScreenState extends State<AttendanceScreen> {
                               'name': s.name,
                               'id': s.studentId.isNotEmpty ? s.studentId : s.id,
                               'docId': s.id,
+                              'class': s.klass,
                               'present': attendance[s.id] ?? false,
                             },
                           )
                           .toList();
 
                       if (combined.isEmpty) {
-                        return Column(
-                          children: [
-                            debugPanel,
-                            Center(
-                              child: Padding(
-                                padding: const EdgeInsets.all(32.0),
-                                child: Text(
-                                  'No students found for this class',
-                                  style: TextStyle(
-                                    color: Theme.of(
-                                      context,
-                                    ).textTheme.bodySmall?.color,
-                                    fontSize: 16,
-                                  ),
-                                ),
+                        return Center(
+                          child: Padding(
+                            padding: const EdgeInsets.all(32.0),
+                            child: Text(
+                              'No students found for this class',
+                              style: TextStyle(
+                                color: Theme.of(
+                                  context,
+                                ).textTheme.bodySmall?.color,
+                                fontSize: 16,
                               ),
                             ),
-                          ],
+                          ),
                         );
                       }
 
                       return Column(
-                        children: [
-                          debugPanel,
-                          ...combined.map(_studentTile).toList(),
-                        ],
+                        children: combined.map(_studentTile).toList(),
                       );
                     },
                   ),
@@ -311,7 +324,7 @@ class _AttendanceScreenState extends State<AttendanceScreen> {
                 await _studentService.toggleAttendance(
                   studentId: student['docId'],
                   date: selectedDate,
-                  klass: selectedClass,
+                  klass: student['class'], // Use student's actual class
                   present: val,
                 );
               } catch (e) {
@@ -335,23 +348,39 @@ class _AttendanceScreenState extends State<AttendanceScreen> {
           ? MainAxisAlignment.end
           : MainAxisAlignment.center,
       children: [
-        OutlinedButton(
+        ElevatedButton(
+          style: ElevatedButton.styleFrom(
+            backgroundColor: Theme.of(context).brightness == Brightness.dark
+                ? AppColors.primaryDark
+                : AppColors.primary,
+            padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 14),
+          ),
           onPressed: () async {
             // Fetch latest students for the selected class and mark them present
             final students = await _studentService
-                .studentsStream(klass: selectedClass)
+                .studentsStream(
+                  klass: selectedClass == 'All Classes' ? null : selectedClass,
+                )
                 .first;
             final futures = students.map(
               (s) => _studentService.toggleAttendance(
                 studentId: s.id,
                 date: selectedDate,
-                klass: selectedClass,
+                klass: s.klass, // Use student's actual class
                 present: true,
               ),
             );
 
             try {
               await Future.wait(futures);
+              if (mounted) {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(
+                    content: Text('All students marked present.'),
+                    duration: Duration(seconds: 2),
+                  ),
+                );
+              }
             } catch (e) {
               if (mounted) {
                 ScaffoldMessenger.of(context).showSnackBar(
@@ -363,17 +392,6 @@ class _AttendanceScreenState extends State<AttendanceScreen> {
             }
           },
           child: const Text('Mark All Present'),
-        ),
-        const SizedBox(width: 12),
-        ElevatedButton(
-          style: ElevatedButton.styleFrom(
-            backgroundColor: Theme.of(context).brightness == Brightness.dark
-                ? AppColors.primaryDark
-                : AppColors.primary,
-            padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 14),
-          ),
-          onPressed: () {},
-          child: const Text('Save Attendance'),
         ),
       ],
     );
