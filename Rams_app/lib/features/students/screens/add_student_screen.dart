@@ -349,7 +349,7 @@ class _AddStudentScreenState extends State<AddStudentScreen> {
           ),
           const SizedBox(height: 6),
           DropdownButtonFormField<String>(
-            initialValue: _selectedClass,
+            value: _selectedClass,
             items: items
                 .map((e) => DropdownMenuItem(value: e, child: Text(e)))
                 .toList(),
