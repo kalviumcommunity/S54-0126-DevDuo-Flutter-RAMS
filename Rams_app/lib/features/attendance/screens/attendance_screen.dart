@@ -214,16 +214,14 @@ class _AttendanceScreenState extends State<AttendanceScreen> {
                         ),
                       );
 
-                      final combined = students
-                          .map(
-                            (s) => {
-                              'name': s.name,
-                              'id': s.studentId.isNotEmpty ? s.studentId : s.id,
-                              'docId': s.id,
-                              'present': attendance[s.id] ?? false,
-                            },
-                          )
-                          .toList();
+                      final combined = students.map(
+                        (s) => {
+                          'name': s.name,
+                          'id': s.studentId.isNotEmpty ? s.studentId : s.id,
+                          'docId': s.id,
+                          'present': attendance[s.id] ?? false,
+                        },
+                      );
 
                       if (combined.isEmpty) {
                         return Column(
@@ -248,10 +246,7 @@ class _AttendanceScreenState extends State<AttendanceScreen> {
                       }
 
                       return Column(
-                        children: [
-                          debugPanel,
-                          ...combined.map(_studentTile).toList(),
-                        ],
+                        children: [debugPanel, ...combined.map(_studentTile)],
                       );
                     },
                   ),
@@ -316,9 +311,11 @@ class _AttendanceScreenState extends State<AttendanceScreen> {
                 );
               } catch (e) {
                 // show a simple feedback if something fails
-                ScaffoldMessenger.of(context).showSnackBar(
-                  SnackBar(content: Text('Failed to save attendance')),
-                );
+                if (context.mounted) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(content: Text('Failed to save attendance')),
+                  );
+                }
               }
             },
           ),

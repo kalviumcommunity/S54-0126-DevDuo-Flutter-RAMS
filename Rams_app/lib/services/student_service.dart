@@ -117,7 +117,7 @@ class StudentService {
     required String klass,
     required bool present,
   }) async {
-    final dateKey = _dateKey(date) + '|$klass';
+    final dateKey = '${_dateKey(date)}|$klass';
     final map = _attendance[dateKey] ?? {};
     map[studentId] = present;
     _attendance[dateKey] = map;
@@ -129,7 +129,7 @@ class StudentService {
     DateTime date,
     String klass,
   ) {
-    final key = _dateKey(date) + '|$klass';
+    final key = '${_dateKey(date)}|$klass';
     return _attendanceController.stream.map(
       (all) => Map.unmodifiable(all[key] ?? {}),
     );

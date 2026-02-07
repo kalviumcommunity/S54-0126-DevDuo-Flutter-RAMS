@@ -161,7 +161,7 @@ class _StudentsScreenState extends State<StudentsScreen> {
             SizedBox(
               width: double.infinity,
               child: DropdownButtonFormField<String>(
-                value: classList.contains(selectedClass)
+                initialValue: classList.contains(selectedClass)
                     ? selectedClass
                     : 'All Classes',
                 decoration: const InputDecoration(
