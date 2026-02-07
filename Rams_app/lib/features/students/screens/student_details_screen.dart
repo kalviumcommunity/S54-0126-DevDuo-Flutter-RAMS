@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import '../../../core/constants/app_colors.dart';
 import '../../../core/helpers/responsive_helper.dart';
 import '../../../core/widgets/theme_toggle.dart';
-import '../../../services/student_service.dart';
 
 class StudentDetailsScreen extends StatelessWidget {
   const StudentDetailsScreen({super.key});
@@ -11,8 +10,6 @@ class StudentDetailsScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     final Map<String, dynamic>? student =
         ModalRoute.of(context)?.settings.arguments as Map<String, dynamic>?;
-
-    final service = StudentService();
 
     return LayoutBuilder(
       builder: (context, constraints) {
@@ -245,18 +242,17 @@ class StudentDetailsScreen extends StatelessWidget {
   // ---------------- RIGHT COLUMN ----------------
 
   Widget _rightColumn(BuildContext context, Map<String, dynamic> student) {
-    final service = StudentService();
+    // final service = StudentService();
 
     return Column(
       children: [
         StreamBuilder<double>(
-          stream: service.attendancePercentStreamForStudent(
-            student['docId'] ?? student['id'],
-          ),
+          stream: Stream.value(0.0),
           builder: (context, snap) {
-            if (!snap.hasData)
+            if (!snap.hasData) {
               return _statCard('Attendance Percentage', '–', context);
-            final percent = (snap.data ?? 0.0).toStringAsFixed(0) + '%';
+            }
+            final percent = '${(snap.data ?? 0.0).toStringAsFixed(0)}%';
             return _statCard('Attendance Percentage', percent, context);
           },
         ),

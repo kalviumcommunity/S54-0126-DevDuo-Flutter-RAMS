@@ -234,6 +234,26 @@ class _AttendanceScreenState extends State<AttendanceScreen> {
                     builder: (context, attSnap) {
                       final attendance = attSnap.data ?? {};
 
+                      // DEBUG panel to inspect attendance state for troubleshooting
+                      final debugPanel = Padding(
+                        padding: const EdgeInsets.only(bottom: 8.0),
+                        child: Text(
+                          'DEBUG attendance: ${attendance.toString()}',
+                          style: TextStyle(
+                            fontSize: 12,
+                            color: Theme.of(context).textTheme.bodySmall?.color,
+                          ),
+                        ),
+                      );
+
+                      final combined = students.map(
+                        (s) => {
+                          'name': s.name,
+                          'id': s.studentId.isNotEmpty ? s.studentId : s.id,
+                          'docId': s.id,
+                          'present': attendance[s.id] ?? false,
+                        },
+                      );
                       final combined = students
                           .map(
                             (s) => {
@@ -264,7 +284,7 @@ class _AttendanceScreenState extends State<AttendanceScreen> {
                       }
 
                       return Column(
-                        children: combined.map(_studentTile).toList(),
+                        children: [debugPanel, ...combined.map(_studentTile)],
                       );
                     },
                   ),
@@ -329,9 +349,11 @@ class _AttendanceScreenState extends State<AttendanceScreen> {
                 );
               } catch (e) {
                 // show a simple feedback if something fails
-                ScaffoldMessenger.of(context).showSnackBar(
-                  SnackBar(content: Text('Failed to save attendance')),
-                );
+                if (context.mounted) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(content: Text('Failed to save attendance')),
+                  );
+                }
               }
             },
           ),
