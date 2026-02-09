@@ -89,6 +89,7 @@ class StudentService {
     required String studentId,
     required DateTime date,
     required String klass,
+    required String subject,
     required bool present,
   }) async {
     try {
@@ -99,6 +100,7 @@ class StudentService {
           .where('studentId', isEqualTo: studentId)
           .where('date', isEqualTo: Timestamp.fromDate(normalizedDate))
           .where('class', isEqualTo: klass)
+          .where('subject', isEqualTo: subject)
           .limit(1)
           .get();
 
@@ -115,6 +117,7 @@ class StudentService {
           studentId: studentId,
           date: normalizedDate,
           klass: klass,
+          subject: subject,
           present: present,
         );
         await _attendanceCollection.add(attendance.toMap());
@@ -130,6 +133,7 @@ class StudentService {
   Stream<Map<String, bool>> attendanceStreamForDate(
     DateTime date,
     String? klass,
+    String? subject,
   ) {
     final normalizedDate = _normalizeDate(date);
 
@@ -141,6 +145,11 @@ class StudentService {
     // Only filter by class if a specific class is provided
     if (klass != null && klass.isNotEmpty) {
       query = query.where('class', isEqualTo: klass);
+    }
+
+    // Only filter by subject if a specific subject is provided
+    if (subject != null && subject.isNotEmpty) {
+      query = query.where('subject', isEqualTo: subject);
     }
 
     return query.snapshots().map((snapshot) {

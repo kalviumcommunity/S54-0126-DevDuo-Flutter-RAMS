@@ -6,6 +6,7 @@ class Attendance {
   final String studentId;
   final DateTime date;
   final String klass; // "class" is reserved in Dart
+  final String subject;
   final bool present;
   final DateTime? markedAt;
   final String? markedBy;
@@ -15,6 +16,7 @@ class Attendance {
     required this.studentId,
     required this.date,
     required this.klass,
+    required this.subject,
     required this.present,
     this.markedAt,
     this.markedBy,
@@ -27,6 +29,7 @@ class Attendance {
       studentId: data['studentId'] as String? ?? '',
       date: (data['date'] as Timestamp?)?.toDate() ?? DateTime.now(),
       klass: data['class'] as String? ?? '',
+      subject: data['subject'] as String? ?? '',
       present: data['present'] as bool? ?? false,
       markedAt: (data['markedAt'] as Timestamp?)?.toDate(),
       markedBy: data['markedBy'] as String?,
@@ -42,6 +45,7 @@ class Attendance {
       'studentId': studentId,
       'date': Timestamp.fromDate(normalizedDate),
       'class': klass,
+      'subject': subject,
       'present': present,
       'markedAt': markedAt != null
           ? Timestamp.fromDate(markedAt!)
@@ -56,6 +60,7 @@ class Attendance {
     String? studentId,
     DateTime? date,
     String? klass,
+    String? subject,
     bool? present,
     DateTime? markedAt,
     String? markedBy,
@@ -65,6 +70,7 @@ class Attendance {
       studentId: studentId ?? this.studentId,
       date: date ?? this.date,
       klass: klass ?? this.klass,
+      subject: subject ?? this.subject,
       present: present ?? this.present,
       markedAt: markedAt ?? this.markedAt,
       markedBy: markedBy ?? this.markedBy,
