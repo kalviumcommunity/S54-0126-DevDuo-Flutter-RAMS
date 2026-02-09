@@ -16,6 +16,7 @@ import 'features/students/screens/students_screen.dart';
 import 'features/students/screens/student_details_screen.dart';
 import 'features/reports_screen.dart';
 import 'features/students/screens/add_student_screen.dart';
+import 'features/students/screens/add_marks_screen.dart';
 
 // CORE
 import 'core/constants/app_colors.dart';
@@ -147,6 +148,7 @@ class MyApp extends StatelessWidget {
             '/student-details': (context) => const StudentDetailsScreen(),
             '/reports': (context) => const ReportsScreen(),
             '/add-student': (context) => const AddStudentScreen(),
+            '/add-marks': (context) => const AddMarksScreen(),
           },
 
           home: const LoginScreen(),

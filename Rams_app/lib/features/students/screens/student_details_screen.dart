@@ -34,27 +34,21 @@ class StudentDetailsScreen extends StatelessWidget {
                         ),
                       )
                     : isWide
-                    ? Row(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Expanded(
-                            flex: 3,
-                            child: _leftColumn(context, student),
+                        ? Row(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Expanded(flex: 3, child: _leftColumn(context, student)),
+                              const SizedBox(width: 16),
+                              Expanded(flex: 1, child: _rightColumn(context, student)),
+                            ],
+                          )
+                        : Column(
+                            children: [
+                              _leftColumn(context, student),
+                              const SizedBox(height: 16),
+                              _rightColumn(context, student),
+                            ],
                           ),
-                          const SizedBox(width: 16),
-                          Expanded(
-                            flex: 1,
-                            child: _rightColumn(context, student),
-                          ),
-                        ],
-                      )
-                    : Column(
-                        children: [
-                          _leftColumn(context, student),
-                          const SizedBox(height: 16),
-                          _rightColumn(context, student),
-                        ],
-                      ),
               ),
             ),
           ),
@@ -86,7 +80,7 @@ class StudentDetailsScreen extends StatelessWidget {
       children: [
         _studentHeader(context, student),
         const SizedBox(height: 16),
-        _subjectMarksCard(),
+        _subjectMarksCard(context, student),
         const SizedBox(height: 16),
         _progressChartCard(context),
       ],
@@ -112,9 +106,9 @@ class StudentDetailsScreen extends StatelessWidget {
               children: [
                 Text(
                   student['name'] ?? 'Unknown',
-                  style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                  style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
                 ),
-                SizedBox(height: 4),
+                const SizedBox(height: 4),
                 Text(
                   'Student ID: ${student['id'] ?? student['docId'] ?? ''}',
                   style: TextStyle(
@@ -132,7 +126,7 @@ class StudentDetailsScreen extends StatelessWidget {
 
   // ---------------- SUBJECT MARKS ----------------
 
-  Widget _subjectMarksCard() {
+  Widget _subjectMarksCard(BuildContext context, Map<String, dynamic> student) {
     return Card(
       elevation: 0,
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
@@ -141,32 +135,34 @@ class StudentDetailsScreen extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            const Text(
-              'Subject Marks',
-              style: TextStyle(fontWeight: FontWeight.bold),
-            ),
+            const Text('Subject Marks', style: TextStyle(fontWeight: FontWeight.bold)),
             const SizedBox(height: 12),
             Row(
-              children: [
+              children: const [
                 Expanded(flex: 3, child: _Header('SUBJECT')),
                 Expanded(flex: 2, child: _Header('MARKS')),
                 Expanded(flex: 2, child: _Header('STATUS')),
+                SizedBox(width: 40),
               ],
             ),
             const Divider(),
-            ..._subjects.map(_subjectRow),
+            ..._subjects.map((s) => _subjectRow(context, student, s)),
           ],
         ),
       ),
     );
   }
 
-  Widget _subjectRow(Map<String, dynamic> s) {
+  Widget _subjectRow(
+    BuildContext context,
+    Map<String, dynamic> student,
+    Map<String, dynamic> s,
+  ) {
     final Color c = s['status'] == 'Pass'
         ? Colors.green
         : s['status'] == 'Fail'
-        ? Colors.red
-        : Colors.orange;
+            ? Colors.red
+            : Colors.orange;
 
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 6),
@@ -184,13 +180,23 @@ class StudentDetailsScreen extends StatelessWidget {
               ),
               child: Text(
                 s['status'],
-                style: TextStyle(
-                  color: c,
-                  fontSize: 12,
-                  fontWeight: FontWeight.w600,
-                ),
+                style: TextStyle(color: c, fontSize: 12, fontWeight: FontWeight.w600),
               ),
             ),
+          ),
+          IconButton(
+            tooltip: 'Add Marks',
+            icon: const Icon(Icons.add_circle_outline),
+            onPressed: () {
+              Navigator.pushNamed(
+                context,
+                '/add-marks',
+                arguments: {
+                  'student': student,
+                  'subject': s['subject'],
+                },
+              );
+            },
           ),
         ],
       ),
@@ -208,10 +214,8 @@ class StudentDetailsScreen extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            const Text(
-              'Academic Progress Over Time',
-              style: TextStyle(fontWeight: FontWeight.bold),
-            ),
+            const Text('Academic Progress Over Time',
+                style: TextStyle(fontWeight: FontWeight.bold)),
             const SizedBox(height: 16),
             SizedBox(
               height: 260,
@@ -229,7 +233,7 @@ class StudentDetailsScreen extends StatelessWidget {
   Widget _legend() {
     return Row(
       mainAxisAlignment: MainAxisAlignment.center,
-      children: [
+      children: const [
         _LegendDot(color: Colors.orange, label: 'Mathematics'),
         SizedBox(width: 16),
         _LegendDot(color: Colors.teal, label: 'Science'),
@@ -242,20 +246,9 @@ class StudentDetailsScreen extends StatelessWidget {
   // ---------------- RIGHT COLUMN ----------------
 
   Widget _rightColumn(BuildContext context, Map<String, dynamic> student) {
-    // final service = StudentService();
-
     return Column(
       children: [
-        StreamBuilder<double>(
-          stream: Stream.value(0.0),
-          builder: (context, snap) {
-            if (!snap.hasData) {
-              return _statCard('Attendance Percentage', '–', context);
-            }
-            final percent = '${(snap.data ?? 0.0).toStringAsFixed(0)}%';
-            return _statCard('Attendance Percentage', percent, context);
-          },
-        ),
+        _statCard('Attendance Percentage', '85%', context),
         const SizedBox(height: 16),
         _statCard('Overall Grade Average', '85%', context),
         const SizedBox(height: 16),
@@ -272,46 +265,30 @@ class StudentDetailsScreen extends StatelessWidget {
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
       child: Padding(
         padding: const EdgeInsets.all(16),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              title,
-              style: TextStyle(
-                color: Theme.of(context).textTheme.bodySmall?.color,
-              ),
+        child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+          Text(title,
+              style: TextStyle(color: Theme.of(context).textTheme.bodySmall?.color)),
+          const SizedBox(height: 6),
+          Text(
+            value,
+            style: TextStyle(
+              fontSize: 28,
+              fontWeight: FontWeight.bold,
+              color: Theme.of(context).brightness == Brightness.dark
+                  ? AppColors.primaryDark
+                  : AppColors.primary,
             ),
-            const SizedBox(height: 6),
-            Text(
-              value,
-              style: TextStyle(
-                fontSize: 28,
-                fontWeight: FontWeight.bold,
-                color: Theme.of(context).brightness == Brightness.dark
-                    ? AppColors.primaryDark
-                    : AppColors.primary,
-              ),
-            ),
-          ],
-        ),
+          ),
+        ]),
       ),
     );
   }
 
-  Widget _button(
-    String text,
-    IconData icon,
-    bool outlined,
-    BuildContext context,
-  ) {
+  Widget _button(String text, IconData icon, bool outlined, BuildContext context) {
     return SizedBox(
       width: double.infinity,
       child: outlined
-          ? OutlinedButton.icon(
-              onPressed: () {},
-              icon: Icon(icon),
-              label: Text(text),
-            )
+          ? OutlinedButton.icon(onPressed: () {}, icon: Icon(icon), label: Text(text))
           : ElevatedButton.icon(
               onPressed: () {},
               icon: Icon(icon),
@@ -333,7 +310,7 @@ final List<Map<String, dynamic>> _subjects = [
   {'subject': 'Science', 'marks': '92/100', 'status': 'Pass'},
   {'subject': 'English', 'marks': '75/100', 'status': 'Improvement Needed'},
   {'subject': 'History', 'marks': '62/100', 'status': 'Fail'},
-  {'subject': 'Computer ', 'marks': '99/100', 'status': 'Pass'},
+  {'subject': 'Computer', 'marks': '99/100', 'status': 'Pass'},
 ];
 
 // ---------------- HELPERS ----------------
@@ -346,10 +323,7 @@ class _Header extends StatelessWidget {
   Widget build(BuildContext context) {
     return Text(
       text,
-      style: TextStyle(
-        fontSize: 12,
-        color: Theme.of(context).textTheme.bodySmall?.color,
-      ),
+      style: TextStyle(fontSize: 12, color: Theme.of(context).textTheme.bodySmall?.color),
     );
   }
 }
@@ -362,17 +336,11 @@ class _LegendDot extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Row(
-      children: [
-        Container(
-          width: 8,
-          height: 8,
-          decoration: BoxDecoration(color: color, shape: BoxShape.circle),
-        ),
-        const SizedBox(width: 6),
-        Text(label, style: const TextStyle(fontSize: 12)),
-      ],
-    );
+    return Row(children: [
+      Container(width: 8, height: 8, decoration: BoxDecoration(color: color, shape: BoxShape.circle)),
+      const SizedBox(width: 6),
+      Text(label, style: const TextStyle(fontSize: 12)),
+    ]);
   }
 }
 
@@ -380,7 +348,6 @@ class _LegendDot extends StatelessWidget {
 
 class _AcademicChartPainter extends CustomPainter {
   final BuildContext context;
-
   _AcademicChartPainter(this.context);
 
   final List<double> math = [78, 82, 85, 88];
@@ -401,105 +368,27 @@ class _AcademicChartPainter extends CustomPainter {
 
     final gridPaint = Paint()
       ..color = Theme.of(context).dividerColor.withValues(alpha: 0.5)
-      ..strokeWidth = 1
-      ..style = PaintingStyle.stroke;
+      ..strokeWidth = 1;
 
-    // Horizontal dashed grid
     for (int i = 0; i < yAxis.length; i++) {
       final y = topPad + chartHeight * (i / (yAxis.length - 1));
-      _drawDashedLine(
-        canvas,
-        Offset(leftPad, y),
-        Offset(size.width, y),
-        gridPaint,
-      );
-
-      final tp = TextPainter(
-        text: TextSpan(
-          text: yAxis[yAxis.length - 1 - i].toString(),
-          style: TextStyle(
-            fontSize: 10,
-            color: Theme.of(context).textTheme.bodySmall?.color,
-          ),
-        ),
-        textDirection: TextDirection.ltr,
-      )..layout();
-      tp.paint(canvas, Offset(0, y - 6));
+      _drawDashedLine(canvas, Offset(leftPad, y), Offset(size.width, y), gridPaint);
     }
 
-    _drawLine(
-      canvas,
-      math,
-      Colors.orange,
-      size,
-      leftPad,
-      topPad,
-      chartWidth,
-      chartHeight,
-    );
-    _drawLine(
-      canvas,
-      science,
-      Colors.teal,
-      size,
-      leftPad,
-      topPad,
-      chartWidth,
-      chartHeight,
-    );
-    _drawLine(
-      canvas,
-      english,
-      Colors.blueGrey,
-      size,
-      leftPad,
-      topPad,
-      chartWidth,
-      chartHeight,
-    );
-
-    for (int i = 0; i < xAxis.length; i++) {
-      final x = leftPad + chartWidth * (i / (xAxis.length - 1));
-      final tp = TextPainter(
-        text: TextSpan(
-          text: xAxis[i],
-          style: TextStyle(
-            fontSize: 10,
-            color: Theme.of(context).textTheme.bodySmall?.color,
-          ),
-        ),
-        textDirection: TextDirection.ltr,
-      )..layout();
-      tp.paint(canvas, Offset(x - 10, size.height - 20));
-    }
+    _drawLine(canvas, math, Colors.orange, chartWidth, chartHeight, leftPad, topPad);
+    _drawLine(canvas, science, Colors.teal, chartWidth, chartHeight, leftPad, topPad);
+    _drawLine(canvas, english, Colors.blueGrey, chartWidth, chartHeight, leftPad, topPad);
   }
 
-  void _drawLine(
-    Canvas canvas,
-    List<double> values,
-    Color color,
-    Size size,
-    double left,
-    double top,
-    double width,
-    double height,
-  ) {
-    final paint = Paint()
-      ..color = color
-      ..strokeWidth = 2
-      ..style = PaintingStyle.stroke;
-
+  void _drawLine(Canvas canvas, List<double> values, Color color, double width,
+      double height, double left, double top) {
+    final paint = Paint()..color = color..strokeWidth = 2..style = PaintingStyle.stroke;
     final path = Path();
 
     for (int i = 0; i < values.length; i++) {
       final x = left + width * (i / (values.length - 1));
       final y = top + height * (1 - (values[i] - 70) / 24);
-      if (i == 0) {
-        path.moveTo(x, y);
-      } else {
-        path.lineTo(x, y);
-      }
-
+      i == 0 ? path.moveTo(x, y) : path.lineTo(x, y);
       canvas.drawCircle(Offset(x, y), 3, Paint()..color = color);
     }
 
@@ -512,11 +401,7 @@ class _AcademicChartPainter extends CustomPainter {
     double dx = start.dx;
 
     while (dx < end.dx) {
-      canvas.drawLine(
-        Offset(dx, start.dy),
-        Offset(dx + dashWidth, start.dy),
-        paint,
-      );
+      canvas.drawLine(Offset(dx, start.dy), Offset(dx + dashWidth, start.dy), paint);
       dx += dashWidth + dashSpace;
     }
   }
