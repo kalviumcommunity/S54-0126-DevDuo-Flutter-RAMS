@@ -91,12 +91,6 @@ class StudentService {
     required String klass,
     required bool present,
   }) async {
-    final dateKey = '${_dateKey(date)}|$klass';
-    final map = _attendance[dateKey] ?? {};
-    map[studentId] = present;
-    _attendance[dateKey] = map;
-    _attendanceController.add(Map.unmodifiable(_attendance));
-    _emitAttendancePercent();
     try {
       final normalizedDate = _normalizeDate(date);
 
