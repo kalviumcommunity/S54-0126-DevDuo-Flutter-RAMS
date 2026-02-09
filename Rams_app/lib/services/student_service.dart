@@ -95,33 +95,23 @@ class StudentService {
     try {
       final normalizedDate = _normalizeDate(date);
 
-      // Query for existing attendance record
-      final querySnapshot = await _attendanceCollection
-          .where('studentId', isEqualTo: studentId)
-          .where('date', isEqualTo: Timestamp.fromDate(normalizedDate))
-          .where('class', isEqualTo: klass)
-          .where('subject', isEqualTo: subject)
-          .limit(1)
-          .get();
+      // Use a deterministic ID to prevent duplicates and ensure atomicity
+      // studentId + date (ms) + subject
+      final docId =
+          '${studentId}_${normalizedDate.millisecondsSinceEpoch}_$subject';
 
-      if (querySnapshot.docs.isNotEmpty) {
-        // Update existing record
-        await querySnapshot.docs.first.reference.update({
-          'present': present,
-          'markedAt': FieldValue.serverTimestamp(),
-        });
-      } else {
-        // Create new record
-        final attendance = Attendance(
-          id: '', // Firestore will generate
-          studentId: studentId,
-          date: normalizedDate,
-          klass: klass,
-          subject: subject,
-          present: present,
-        );
-        await _attendanceCollection.add(attendance.toMap());
-      }
+      final attendance = Attendance(
+        id: docId,
+        studentId: studentId,
+        date: normalizedDate,
+        klass: klass,
+        subject: subject,
+        present: present,
+        markedAt: DateTime.now(),
+      );
+
+      // doc().set() is atomic and will overwrite if exists, preventing duplicates
+      await _attendanceCollection.doc(docId).set(attendance.toMap());
     } catch (e) {
       throw Exception('Failed to toggle attendance: $e');
     }
@@ -135,6 +125,11 @@ class StudentService {
     String? klass,
     String? subject,
   ) {
+    // If no subject is specified, return an empty map to avoid cross-subject data leakage
+    if (subject == null || subject.isEmpty) {
+      return Stream.value({});
+    }
+
     final normalizedDate = _normalizeDate(date);
 
     Query query = _attendanceCollection.where(
@@ -147,10 +142,8 @@ class StudentService {
       query = query.where('class', isEqualTo: klass);
     }
 
-    // Only filter by subject if a specific subject is provided
-    if (subject != null && subject.isNotEmpty) {
-      query = query.where('subject', isEqualTo: subject);
-    }
+    // Since we already checked subject is not null/empty above, we can safely apply the filter
+    query = query.where('subject', isEqualTo: subject);
 
     return query.snapshots().map((snapshot) {
       final Map<String, bool> attendanceMap = {};
@@ -177,11 +170,18 @@ class StudentService {
           final total = await totalStudents();
           if (total == 0) return 0.0;
 
-          final presentCount = snapshot.docs.where((doc) {
+          // Count unique students who are present in AT LEAST one subject today
+          final presentStudentIds = <String>{};
+          for (final doc in snapshot.docs) {
             final data = doc.data() as Map<String, dynamic>;
-            return data['present'] as bool? ?? false;
-          }).length;
+            final isPresent = data['present'] as bool? ?? false;
+            final sId = data['studentId'] as String?;
+            if (isPresent && sId != null) {
+              presentStudentIds.add(sId);
+            }
+          }
 
+          final presentCount = presentStudentIds.length;
           return (presentCount / total) * 100.0;
         });
   }

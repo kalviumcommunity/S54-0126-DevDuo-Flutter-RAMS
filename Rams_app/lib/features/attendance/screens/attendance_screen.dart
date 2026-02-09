@@ -263,6 +263,32 @@ class _AttendanceScreenState extends State<AttendanceScreen> {
                       child: CircularProgressIndicator(),
                     ),
                   )
+                else if (selectedSubject == null)
+                  Center(
+                    child: Padding(
+                      padding: const EdgeInsets.all(32.0),
+                      child: Column(
+                        children: [
+                          Icon(
+                            Icons.subject,
+                            size: 48,
+                            color: Theme.of(context).dividerColor,
+                          ),
+                          const SizedBox(height: 12),
+                          Text(
+                            'Please select a subject to view or mark attendance',
+                            textAlign: TextAlign.center,
+                            style: TextStyle(
+                              color: Theme.of(
+                                context,
+                              ).textTheme.bodySmall?.color,
+                              fontSize: 14,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  )
                 else
                   StreamBuilder<Map<String, bool>>(
                     stream: _studentService.attendanceStreamForDate(
