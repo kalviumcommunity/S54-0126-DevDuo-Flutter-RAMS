@@ -14,7 +14,16 @@ class AttendanceScreen extends StatefulWidget {
 
 class _AttendanceScreenState extends State<AttendanceScreen> {
   String selectedClass = 'All Classes';
+  String? selectedSubject;
   DateTime selectedDate = DateTime.now();
+
+  final List<String> subjects = [
+    'Mathematics',
+    'Science',
+    'English',
+    'History',
+    'Computer',
+  ];
 
   final StudentService _studentService = StudentService();
 
@@ -81,6 +90,8 @@ class _AttendanceScreenState extends State<AttendanceScreen> {
                 children: [
                   Expanded(child: _classDropdown()),
                   const SizedBox(width: 16),
+                  Expanded(child: _subjectDropdown()),
+                  const SizedBox(width: 16),
                   Expanded(child: _datePicker()),
                 ],
               )
@@ -88,10 +99,37 @@ class _AttendanceScreenState extends State<AttendanceScreen> {
                 children: [
                   _classDropdown(),
                   const SizedBox(height: 12),
+                  _subjectDropdown(),
+                  const SizedBox(height: 12),
                   _datePicker(),
                 ],
               ),
       ),
+    );
+  }
+
+  Widget _subjectDropdown() {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        const Text('Subject', style: TextStyle(fontWeight: FontWeight.w600)),
+        const SizedBox(height: 6),
+        SizedBox(
+          width: double.infinity,
+          child: DropdownButtonFormField<String>(
+            value: selectedSubject,
+            hint: const Text('Select Subject'),
+            decoration: const InputDecoration(
+              border: OutlineInputBorder(),
+              isDense: true,
+            ),
+            items: subjects
+                .map((s) => DropdownMenuItem(value: s, child: Text(s)))
+                .toList(),
+            onChanged: (val) => setState(() => selectedSubject = val),
+          ),
+        ),
+      ],
     );
   }
 
@@ -225,26 +263,41 @@ class _AttendanceScreenState extends State<AttendanceScreen> {
                       child: CircularProgressIndicator(),
                     ),
                   )
+                else if (selectedSubject == null)
+                  Center(
+                    child: Padding(
+                      padding: const EdgeInsets.all(32.0),
+                      child: Column(
+                        children: [
+                          Icon(
+                            Icons.subject,
+                            size: 48,
+                            color: Theme.of(context).dividerColor,
+                          ),
+                          const SizedBox(height: 12),
+                          Text(
+                            'Please select a subject to view or mark attendance',
+                            textAlign: TextAlign.center,
+                            style: TextStyle(
+                              color: Theme.of(
+                                context,
+                              ).textTheme.bodySmall?.color,
+                              fontSize: 14,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  )
                 else
                   StreamBuilder<Map<String, bool>>(
                     stream: _studentService.attendanceStreamForDate(
                       selectedDate,
                       selectedClass == 'All Classes' ? null : selectedClass,
+                      selectedSubject,
                     ),
                     builder: (context, attSnap) {
                       final attendance = attSnap.data ?? {};
-
-                      // DEBUG panel to inspect attendance state for troubleshooting
-                      final debugPanel = Padding(
-                        padding: const EdgeInsets.only(bottom: 8.0),
-                        child: Text(
-                          'DEBUG attendance: ${attendance.toString()}',
-                          style: TextStyle(
-                            fontSize: 12,
-                            color: Theme.of(context).textTheme.bodySmall?.color,
-                          ),
-                        ),
-                      );
 
                       final combined = students
                           .map(
@@ -254,6 +307,7 @@ class _AttendanceScreenState extends State<AttendanceScreen> {
                               'docId': s.id,
                               'class': s.klass,
                               'present': attendance[s.id] ?? false,
+                              'enabled': selectedSubject != null,
                             },
                           )
                           .toList();
@@ -276,7 +330,7 @@ class _AttendanceScreenState extends State<AttendanceScreen> {
                       }
 
                       return Column(
-                        children: [debugPanel, ...combined.map(_studentTile)],
+                        children: combined.map(_studentTile).toList(),
                       );
                     },
                   ),
@@ -330,24 +384,27 @@ class _AttendanceScreenState extends State<AttendanceScreen> {
           Switch(
             value: student['present'],
             activeThumbColor: AppColors.primary,
-            onChanged: (val) async {
-              // Persist change to Firestore; UI will update via streams
-              try {
-                await _studentService.toggleAttendance(
-                  studentId: student['docId'],
-                  date: selectedDate,
-                  klass: student['class'], // Use student's actual class
-                  present: val,
-                );
-              } catch (e) {
-                // show a simple feedback if something fails
-                if (context.mounted) {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(content: Text('Failed to save attendance')),
-                  );
-                }
-              }
-            },
+            onChanged: student['enabled']
+                ? (val) async {
+                    // Persist change to Firestore; UI will update via streams
+                    try {
+                      await _studentService.toggleAttendance(
+                        studentId: student['docId'],
+                        date: selectedDate,
+                        klass: student['class'], // Use student's actual class
+                        subject: selectedSubject!,
+                        present: val,
+                      );
+                    } catch (e) {
+                      // show a simple feedback if something fails
+                      if (context.mounted) {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          SnackBar(content: Text('Failed to save attendance')),
+                        );
+                      }
+                    }
+                  }
+                : null,
           ),
         ],
       ),
@@ -369,42 +426,47 @@ class _AttendanceScreenState extends State<AttendanceScreen> {
                 : AppColors.primary,
             padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 14),
           ),
-          onPressed: () async {
-            // Fetch latest students for the selected class and mark them present
-            final students = await _studentService
-                .studentsStream(
-                  klass: selectedClass == 'All Classes' ? null : selectedClass,
-                )
-                .first;
-            final futures = students.map(
-              (s) => _studentService.toggleAttendance(
-                studentId: s.id,
-                date: selectedDate,
-                klass: s.klass, // Use student's actual class
-                present: true,
-              ),
-            );
+          onPressed: selectedSubject == null
+              ? null
+              : () async {
+                  // Fetch latest students for the selected class and mark them present
+                  final students = await _studentService
+                      .studentsStream(
+                        klass: selectedClass == 'All Classes'
+                            ? null
+                            : selectedClass,
+                      )
+                      .first;
+                  final futures = students.map(
+                    (s) => _studentService.toggleAttendance(
+                      studentId: s.id,
+                      date: selectedDate,
+                      klass: s.klass, // Use student's actual class
+                      subject: selectedSubject!,
+                      present: true,
+                    ),
+                  );
 
-            try {
-              await Future.wait(futures);
-              if (mounted) {
-                ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(
-                    content: Text('All students marked present.'),
-                    duration: Duration(seconds: 2),
-                  ),
-                );
-              }
-            } catch (e) {
-              if (mounted) {
-                ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(
-                    content: Text('Failed to mark all students present.'),
-                  ),
-                );
-              }
-            }
-          },
+                  try {
+                    await Future.wait(futures);
+                    if (mounted) {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        const SnackBar(
+                          content: Text('All students marked present.'),
+                          duration: Duration(seconds: 2),
+                        ),
+                      );
+                    }
+                  } catch (e) {
+                    if (mounted) {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        const SnackBar(
+                          content: Text('Failed to mark all students present.'),
+                        ),
+                      );
+                    }
+                  }
+                },
           child: const Text('Mark All Present'),
         ),
       ],
