@@ -246,14 +246,6 @@ class _AttendanceScreenState extends State<AttendanceScreen> {
                         ),
                       );
 
-                      final combined = students.map(
-                        (s) => {
-                          'name': s.name,
-                          'id': s.studentId.isNotEmpty ? s.studentId : s.id,
-                          'docId': s.id,
-                          'present': attendance[s.id] ?? false,
-                        },
-                      );
                       final combined = students
                           .map(
                             (s) => {
