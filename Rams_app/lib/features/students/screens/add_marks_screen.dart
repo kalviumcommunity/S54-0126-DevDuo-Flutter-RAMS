@@ -53,6 +53,10 @@ class _AddMarksScreenState extends State<AddMarksScreen> {
   void dispose() {
     _examDateController.dispose();
     _notesController.dispose();
+    for (var row in _rows) {
+      row.dispose();
+    }
+    _rows.clear();
     super.dispose();
   }
 
@@ -85,41 +89,63 @@ class _AddMarksScreenState extends State<AddMarksScreen> {
     }
 
     setState(() => _isLoading = true);
+    int savedCount = 0;
     try {
       for (final row in _rows) {
-        if (row.topic.text.isEmpty ||
-            row.max.text.isEmpty ||
-            row.obtained.text.isEmpty)
-          continue;
+        if (row.topic.text.trim().isEmpty) continue;
+
+        final max = double.tryParse(row.max.text);
+        final obtained = double.tryParse(row.obtained.text);
+
+        if (max == null ||
+            obtained == null ||
+            max < 0 ||
+            obtained < 0 ||
+            obtained > max) {
+          throw Exception('Invalid marks data in one or more rows');
+        }
 
         final marks = Marks(
           id: '',
           studentId: _selectedStudent!,
           subject: _selectedSubject!,
           topic: row.topic.text.trim(),
-          obtainedMarks: double.tryParse(row.obtained.text) ?? 0,
-          maxMarks: double.tryParse(row.max.text) ?? 100,
+          obtainedMarks: obtained,
+          maxMarks: max,
           examDate: _selectedDateTime!,
           notes: _notesController.text.trim().isNotEmpty
               ? _notesController.text
               : null,
         );
         await _studentService.saveMarks(marks);
+        savedCount++;
       }
 
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Marks uploaded successfully'),
-            backgroundColor: Colors.green,
-          ),
-        );
-        Navigator.pop(context);
+        if (savedCount > 0) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text('$savedCount mark(s) uploaded successfully'),
+              backgroundColor: Colors.green,
+            ),
+          );
+          Navigator.pop(context);
+        } else {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('No valid marks were entered')),
+          );
+        }
       }
-    } catch (e) {
+    } catch (e, stack) {
+      debugPrint('Error saving marks: $e\n$stack');
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Error: $e'), backgroundColor: Colors.red),
+          const SnackBar(
+            content: Text(
+              'Failed to save marks. Please check your entries and try again.',
+            ),
+            backgroundColor: Colors.red,
+          ),
         );
       }
     } finally {
@@ -201,8 +227,11 @@ class _AddMarksScreenState extends State<AddMarksScreen> {
                 .toList()
               ..sort();
 
-        // Ensure current selection is still valid
-        if (_selectedClass != null && !uniqueClasses.contains(_selectedClass)) {
+        // Ensure current selection is still valid, but ONLY IF the stream is done loading
+        // to prevent resetting pre-selections during the initial frame.
+        if (snapshot.hasData &&
+            _selectedClass != null &&
+            !uniqueClasses.contains(_selectedClass)) {
           _selectedClass = null;
           _selectedStudent = null;
         }
@@ -313,27 +342,52 @@ class _AddMarksScreenState extends State<AddMarksScreen> {
             child: TextFormField(
               controller: row.topic,
               decoration: const InputDecoration(hintText: 'Topic / Assessment'),
+              validator: (v) =>
+                  v == null || v.trim().isEmpty ? 'Required' : null,
             ),
           ),
           const SizedBox(width: 8),
           Expanded(
             child: TextFormField(
               controller: row.max,
-              keyboardType: TextInputType.number,
+              keyboardType: const TextInputType.numberWithOptions(
+                decimal: true,
+              ),
               decoration: const InputDecoration(hintText: 'Max'),
+              validator: (v) {
+                if (v == null || v.isEmpty) return 'Req';
+                final n = double.tryParse(v);
+                if (n == null || n < 0) return 'Err';
+                return null;
+              },
             ),
           ),
           const SizedBox(width: 8),
           Expanded(
             child: TextFormField(
               controller: row.obtained,
-              keyboardType: TextInputType.number,
+              keyboardType: const TextInputType.numberWithOptions(
+                decimal: true,
+              ),
               decoration: const InputDecoration(hintText: 'Obtained'),
+              validator: (v) {
+                if (v == null || v.isEmpty) return 'Req';
+                final n = double.tryParse(v);
+                if (n == null || n < 0) return 'Err';
+                final m = double.tryParse(row.max.text);
+                if (m != null && n > m) return 'Range';
+                return null;
+              },
             ),
           ),
           const SizedBox(width: 8),
           IconButton(
-            onPressed: () => setState(() => _rows.remove(row)),
+            onPressed: () {
+              setState(() {
+                _rows.remove(row);
+                row.dispose();
+              });
+            },
             icon: const Icon(Icons.remove_circle, color: Colors.red),
           ),
         ],
@@ -413,4 +467,10 @@ class _MarksRow {
   final TextEditingController topic = TextEditingController();
   final TextEditingController max = TextEditingController();
   final TextEditingController obtained = TextEditingController();
+
+  void dispose() {
+    topic.dispose();
+    max.dispose();
+    obtained.dispose();
+  }
 }

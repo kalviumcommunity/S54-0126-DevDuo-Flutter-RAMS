@@ -14,6 +14,7 @@ class StudentDetailsScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     final Map<String, dynamic>? student =
         ModalRoute.of(context)?.settings.arguments as Map<String, dynamic>?;
+    final String studentId = student?['docId'] ?? student?['id'] ?? '';
 
     return LayoutBuilder(
       builder: (context, constraints) {
@@ -37,27 +38,50 @@ class StudentDetailsScreen extends StatelessWidget {
                           ),
                         ),
                       )
-                    : isWide
-                    ? Row(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Expanded(
-                            flex: 3,
-                            child: _leftColumn(context, student),
-                          ),
-                          const SizedBox(width: 16),
-                          Expanded(
-                            flex: 1,
-                            child: _rightColumn(context, student),
-                          ),
-                        ],
-                      )
-                    : Column(
-                        children: [
-                          _leftColumn(context, student),
-                          const SizedBox(height: 16),
-                          _rightColumn(context, student),
-                        ],
+                    : StreamBuilder<List<Marks>>(
+                        stream: _studentService.marksStreamForStudent(
+                          studentId,
+                        ),
+                        builder: (context, snapshot) {
+                          if (snapshot.connectionState ==
+                              ConnectionState.waiting) {
+                            return const Center(
+                              child: CircularProgressIndicator(),
+                            );
+                          }
+                          final marksList = snapshot.data ?? [];
+
+                          return isWide
+                              ? Row(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Expanded(
+                                      flex: 3,
+                                      child: _leftColumn(
+                                        context,
+                                        student,
+                                        marksList,
+                                      ),
+                                    ),
+                                    const SizedBox(width: 16),
+                                    Expanded(
+                                      flex: 1,
+                                      child: _rightColumn(
+                                        context,
+                                        student,
+                                        marksList,
+                                      ),
+                                    ),
+                                  ],
+                                )
+                              : Column(
+                                  children: [
+                                    _leftColumn(context, student, marksList),
+                                    const SizedBox(height: 16),
+                                    _rightColumn(context, student, marksList),
+                                  ],
+                                );
+                        },
                       ),
               ),
             ),
@@ -85,14 +109,18 @@ class StudentDetailsScreen extends StatelessWidget {
 
   // ---------------- LEFT COLUMN ----------------
 
-  Widget _leftColumn(BuildContext context, Map<String, dynamic> student) {
+  Widget _leftColumn(
+    BuildContext context,
+    Map<String, dynamic> student,
+    List<Marks> marksList,
+  ) {
     return Column(
       children: [
         _studentHeader(context, student),
         const SizedBox(height: 16),
-        _subjectMarksCard(context, student),
+        _subjectMarksCard(context, student, marksList),
         const SizedBox(height: 16),
-        _progressChartCard(context, student),
+        _progressChartCard(context, student, marksList),
       ],
     );
   }
@@ -139,9 +167,11 @@ class StudentDetailsScreen extends StatelessWidget {
 
   // ---------------- SUBJECT MARKS ----------------
 
-  Widget _subjectMarksCard(BuildContext context, Map<String, dynamic> student) {
-    final String studentId = student['docId'] ?? student['id'] ?? '';
-
+  Widget _subjectMarksCard(
+    BuildContext context,
+    Map<String, dynamic> student,
+    List<Marks> marksList,
+  ) {
     return Card(
       elevation: 0,
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
@@ -164,43 +194,34 @@ class StudentDetailsScreen extends StatelessWidget {
               ],
             ),
             const Divider(),
-            StreamBuilder<List<Marks>>(
-              stream: _studentService.marksStreamForStudent(studentId),
-              builder: (context, snapshot) {
-                if (snapshot.connectionState == ConnectionState.waiting) {
-                  return const Center(
-                    child: Padding(
-                      padding: EdgeInsets.all(8.0),
-                      child: CircularProgressIndicator(),
-                    ),
-                  );
-                }
-
-                final marksList = snapshot.data ?? [];
-                final allSubjects = _studentService.getSubjects();
-
-                // Group by subject and take the latest one for each
-                final Map<String, Marks> latestMarksBySubject = {};
-                for (final m in marksList) {
-                  if (!latestMarksBySubject.containsKey(m.subject) ||
-                      m.examDate.isAfter(
-                        latestMarksBySubject[m.subject]!.examDate,
-                      )) {
-                    latestMarksBySubject[m.subject] = m;
-                  }
-                }
-
-                return Column(
-                  children: allSubjects.map((subjectName) {
-                    final m = latestMarksBySubject[subjectName];
-                    return _subjectRow(context, student, subjectName, m);
-                  }).toList(),
-                );
-              },
-            ),
+            _buildMarksList(context, student, marksList),
           ],
         ),
       ),
+    );
+  }
+
+  Widget _buildMarksList(
+    BuildContext context,
+    Map<String, dynamic> student,
+    List<Marks> marksList,
+  ) {
+    final allSubjects = _studentService.getSubjects();
+
+    // Group by subject and take the latest one for each
+    final Map<String, Marks> latestMarksBySubject = {};
+    for (final m in marksList) {
+      if (!latestMarksBySubject.containsKey(m.subject) ||
+          m.examDate.isAfter(latestMarksBySubject[m.subject]!.examDate)) {
+        latestMarksBySubject[m.subject] = m;
+      }
+    }
+
+    return Column(
+      children: allSubjects.map((subjectName) {
+        final m = latestMarksBySubject[subjectName];
+        return _subjectRow(context, student, subjectName, m);
+      }).toList(),
     );
   }
 
@@ -232,7 +253,7 @@ class StudentDetailsScreen extends StatelessWidget {
             child: Container(
               padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
               decoration: BoxDecoration(
-                color: c.withValues(alpha: 0.12),
+                color: c.withOpacity(0.12),
                 borderRadius: BorderRadius.circular(20),
               ),
               child: Text(
@@ -267,9 +288,8 @@ class StudentDetailsScreen extends StatelessWidget {
   Widget _progressChartCard(
     BuildContext context,
     Map<String, dynamic> student,
+    List<Marks> marksList,
   ) {
-    final String studentId = student['docId'] ?? student['id'] ?? '';
-
     return Card(
       elevation: 0,
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
@@ -283,40 +303,32 @@ class StudentDetailsScreen extends StatelessWidget {
               style: TextStyle(fontWeight: FontWeight.bold),
             ),
             const SizedBox(height: 16),
-            StreamBuilder<List<Marks>>(
-              stream: _studentService.marksStreamForStudent(studentId),
-              builder: (context, snapshot) {
-                final marksList = snapshot.data ?? [];
-
-                if (marksList.isEmpty) {
-                  return SizedBox(
+            if (marksList.isEmpty)
+              SizedBox(
+                height: 260,
+                child: Center(
+                  child: Text(
+                    'No progress data available',
+                    style: TextStyle(
+                      color: Theme.of(context).textTheme.bodySmall?.color,
+                    ),
+                  ),
+                ),
+              )
+            else
+              Column(
+                children: [
+                  SizedBox(
                     height: 260,
-                    child: Center(
-                      child: Text(
-                        'No progress data available',
-                        style: TextStyle(
-                          color: Theme.of(context).textTheme.bodySmall?.color,
-                        ),
-                      ),
+                    width: double.infinity,
+                    child: CustomPaint(
+                      painter: _AcademicChartPainter(context, marksList),
                     ),
-                  );
-                }
-
-                return Column(
-                  children: [
-                    SizedBox(
-                      height: 260,
-                      width: double.infinity,
-                      child: CustomPaint(
-                        painter: _AcademicChartPainter(context, marksList),
-                      ),
-                    ),
-                    const SizedBox(height: 12),
-                    _legend(marksList),
-                  ],
-                );
-              },
-            ),
+                  ),
+                  const SizedBox(height: 12),
+                  _legend(marksList),
+                ],
+              ),
           ],
         ),
       ),
@@ -349,8 +361,21 @@ class StudentDetailsScreen extends StatelessWidget {
 
   // ---------------- RIGHT COLUMN ----------------
 
-  Widget _rightColumn(BuildContext context, Map<String, dynamic> student) {
+  Widget _rightColumn(
+    BuildContext context,
+    Map<String, dynamic> student,
+    List<Marks> marksList,
+  ) {
     final String studentId = student['docId'] ?? student['id'] ?? '';
+
+    double avg = 0;
+    if (marksList.isNotEmpty) {
+      avg =
+          marksList
+              .map((m) => (m.obtainedMarks / m.maxMarks) * 100)
+              .reduce((a, b) => a + b) /
+          marksList.length;
+    }
 
     return Column(
       children: [
@@ -366,24 +391,10 @@ class StudentDetailsScreen extends StatelessWidget {
           },
         ),
         const SizedBox(height: 16),
-        StreamBuilder<List<Marks>>(
-          stream: _studentService.marksStreamForStudent(studentId),
-          builder: (context, snapshot) {
-            final marks = snapshot.data ?? [];
-            double avg = 0;
-            if (marks.isNotEmpty) {
-              avg =
-                  marks
-                      .map((m) => (m.obtainedMarks / m.maxMarks) * 100)
-                      .reduce((a, b) => a + b) /
-                  marks.length;
-            }
-            return _statCard(
-              'Overall Grade Average',
-              '${avg.toStringAsFixed(1)}%',
-              context,
-            );
-          },
+        _statCard(
+          'Overall Grade Average',
+          '${avg.toStringAsFixed(1)}%',
+          context,
         ),
         const SizedBox(height: 16),
         _button('Edit Student Profile', Icons.edit, false, context),
