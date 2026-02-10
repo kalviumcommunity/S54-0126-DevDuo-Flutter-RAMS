@@ -120,7 +120,7 @@ class StudentDetailsScreen extends StatelessWidget {
         const SizedBox(height: 16),
         _subjectMarksCard(context, student, marksList),
         const SizedBox(height: 16),
-        _progressChartCard(context, student, marksList),
+        
       ],
     );
   }
@@ -283,81 +283,6 @@ class StudentDetailsScreen extends StatelessWidget {
     );
   }
 
-  // ---------------- PROGRESS CHART ----------------
-
-  Widget _progressChartCard(
-    BuildContext context,
-    Map<String, dynamic> student,
-    List<Marks> marksList,
-  ) {
-    return Card(
-      elevation: 0,
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-      child: Padding(
-        padding: const EdgeInsets.all(16),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            const Text(
-              'Academic Progress Over Time',
-              style: TextStyle(fontWeight: FontWeight.bold),
-            ),
-            const SizedBox(height: 16),
-            if (marksList.isEmpty)
-              SizedBox(
-                height: 260,
-                child: Center(
-                  child: Text(
-                    'No progress data available',
-                    style: TextStyle(
-                      color: Theme.of(context).textTheme.bodySmall?.color,
-                    ),
-                  ),
-                ),
-              )
-            else
-              Column(
-                children: [
-                  SizedBox(
-                    height: 260,
-                    width: double.infinity,
-                    child: CustomPaint(
-                      painter: _AcademicChartPainter(context, marksList),
-                    ),
-                  ),
-                  const SizedBox(height: 12),
-                  _legend(marksList),
-                ],
-              ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  Widget _legend(List<Marks> marksList) {
-    final activeSubjects = marksList.map((m) => m.subject).toSet().toList()
-      ..sort();
-    final colors = [
-      Colors.orange,
-      Colors.teal,
-      Colors.blueGrey,
-      Colors.purple,
-      Colors.indigo,
-    ];
-
-    return Wrap(
-      alignment: WrapAlignment.center,
-      spacing: 16,
-      runSpacing: 8,
-      children: activeSubjects.asMap().entries.map((entry) {
-        return _LegendDot(
-          color: colors[entry.key % colors.length],
-          label: entry.value,
-        );
-      }).toList(),
-    );
-  }
 
   // ---------------- RIGHT COLUMN ----------------
 
