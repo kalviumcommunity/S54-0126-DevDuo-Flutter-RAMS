@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
 import '../../../core/constants/app_colors.dart';
 import '../../../core/helpers/responsive_helper.dart';
+import '../../../services/student_service.dart';
+import '../../../models/student.dart';
+import '../../../models/marks.dart';
 
 class AddMarksScreen extends StatefulWidget {
   const AddMarksScreen({super.key});
@@ -11,18 +14,40 @@ class AddMarksScreen extends StatefulWidget {
 
 class _AddMarksScreenState extends State<AddMarksScreen> {
   final _formKey = GlobalKey<FormState>();
+  final _studentService = StudentService();
 
   final TextEditingController _examDateController = TextEditingController();
   final TextEditingController _notesController = TextEditingController();
 
-  final List<_MarksRow> _rows = [
-    _MarksRow(),
-    _MarksRow(),
-  ];
+  final List<_MarksRow> _rows = [_MarksRow()];
 
-  String _selectedClass = 'Grade 10 A';
-  String _selectedSubject = 'Mathematics';
-  String _selectedStudent = 'John Doe';
+  String? _selectedClass;
+  String? _selectedSubject;
+  String? _selectedStudent;
+  DateTime? _selectedDateTime;
+
+  bool _isLoading = false;
+  bool _isInitialized = false;
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    if (!_isInitialized) {
+      final args =
+          ModalRoute.of(context)?.settings.arguments as Map<String, dynamic>?;
+      if (args != null) {
+        if (args['student'] != null) {
+          final studentData = args['student'] as Map<String, dynamic>;
+          _selectedStudent = studentData['docId'] ?? studentData['id'];
+          _selectedClass = studentData['class'] ?? studentData['klass'];
+        }
+        if (args['subject'] != null) {
+          _selectedSubject = args['subject'] as String;
+        }
+      }
+      _isInitialized = true;
+    }
+  }
 
   @override
   void dispose() {
@@ -40,8 +65,65 @@ class _AddMarksScreenState extends State<AddMarksScreen> {
     );
 
     if (picked != null) {
-      _examDateController.text =
-          '${picked.day}/${picked.month}/${picked.year}';
+      setState(() {
+        _selectedDateTime = picked;
+        _examDateController.text =
+            '${picked.day}/${picked.month}/${picked.year}';
+      });
+    }
+  }
+
+  Future<void> _saveAllMarks() async {
+    if (!_formKey.currentState!.validate()) return;
+    if (_selectedStudent == null ||
+        _selectedSubject == null ||
+        _selectedDateTime == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Please fill all required fields')),
+      );
+      return;
+    }
+
+    setState(() => _isLoading = true);
+    try {
+      for (final row in _rows) {
+        if (row.topic.text.isEmpty ||
+            row.max.text.isEmpty ||
+            row.obtained.text.isEmpty)
+          continue;
+
+        final marks = Marks(
+          id: '',
+          studentId: _selectedStudent!,
+          subject: _selectedSubject!,
+          topic: row.topic.text.trim(),
+          obtainedMarks: double.tryParse(row.obtained.text) ?? 0,
+          maxMarks: double.tryParse(row.max.text) ?? 100,
+          examDate: _selectedDateTime!,
+          notes: _notesController.text.trim().isNotEmpty
+              ? _notesController.text
+              : null,
+        );
+        await _studentService.saveMarks(marks);
+      }
+
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Marks uploaded successfully'),
+            backgroundColor: Colors.green,
+          ),
+        );
+        Navigator.pop(context);
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Error: $e'), backgroundColor: Colors.red),
+        );
+      }
+    } finally {
+      if (mounted) setState(() => _isLoading = false);
     }
   }
 
@@ -52,10 +134,7 @@ class _AddMarksScreenState extends State<AddMarksScreen> {
 
     return Scaffold(
       backgroundColor: Theme.of(context).scaffoldBackgroundColor,
-      appBar: AppBar(
-        title: const Text('Upload Marks'),
-        elevation: 1,
-      ),
+      appBar: AppBar(title: const Text('Upload Marks'), elevation: 1),
       body: SingleChildScrollView(
         padding: EdgeInsets.all(isMobile ? 16 : 24),
         child: Center(
@@ -77,15 +156,16 @@ class _AddMarksScreenState extends State<AddMarksScreen> {
                     const SizedBox(height: 20),
                     const Text(
                       'Marks Entry',
-                      style:
-                          TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
+                      style: TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.w600,
+                      ),
                     ),
                     const SizedBox(height: 12),
                     ..._rows.map((row) => _marksRow(row, isMobile)).toList(),
                     const SizedBox(height: 8),
                     TextButton.icon(
-                      onPressed: () =>
-                          setState(() => _rows.add(_MarksRow())),
+                      onPressed: () => setState(() => _rows.add(_MarksRow())),
                       icon: const Icon(Icons.add),
                       label: const Text('Add Row'),
                     ),
@@ -107,46 +187,115 @@ class _AddMarksScreenState extends State<AddMarksScreen> {
 
   // ---------------- TOP SELECTORS ----------------
   Widget _topSelectors(bool isMobile) {
-    return Wrap(
-      spacing: 12,
-      runSpacing: 12,
-      children: [
-        _dropdown('Class *', _selectedClass,
-            ['Grade 10 A', 'Grade 9 B'], (v) {
-          setState(() => _selectedClass = v);
-        }),
-        _dropdown('Subject *', _selectedSubject,
-            ['Mathematics', 'Science'], (v) {
-          setState(() => _selectedSubject = v);
-        }),
-        _dropdown(
-            'Student *', _selectedStudent, ['John Doe', 'Jane Smith'], (v) {
-          setState(() => _selectedStudent = v);
-        }),
-      ],
+    return StreamBuilder<List<Student>>(
+      stream: _studentService.studentsStream(),
+      builder: (context, snapshot) {
+        final students = snapshot.data ?? [];
+
+        // Extract unique classes dynamically
+        final uniqueClasses =
+            students
+                .map((s) => s.klass)
+                .where((k) => k.isNotEmpty)
+                .toSet()
+                .toList()
+              ..sort();
+
+        // Ensure current selection is still valid
+        if (_selectedClass != null && !uniqueClasses.contains(_selectedClass)) {
+          _selectedClass = null;
+          _selectedStudent = null;
+        }
+
+        // Filter students based on selected class
+        final filteredStudents = _selectedClass == null
+            ? []
+            : students.where((s) => s.klass == _selectedClass).toList();
+
+        return Wrap(
+          spacing: 12,
+          runSpacing: 12,
+          children: [
+            _dropdown('Class *', _selectedClass, uniqueClasses, (v) {
+              setState(() {
+                _selectedClass = v;
+                _selectedStudent = null;
+              });
+            }),
+            _dropdown(
+              'Subject *',
+              _selectedSubject,
+              _studentService.getSubjects(),
+              (v) => setState(() => _selectedSubject = v),
+            ),
+            _dropdown(
+              'Student *',
+              _selectedStudent,
+              filteredStudents.map((s) => s.id as String).toList(),
+              (v) => setState(() => _selectedStudent = v),
+              itemLabelBuilder: (id) {
+                final s = filteredStudents.firstWhere((s) => s.id == id);
+                return '${s.name} (${s.studentId})';
+              },
+            ),
+          ],
+        );
+      },
     );
   }
 
   Widget _dropdown(
     String label,
-    String value,
+    String? value,
     List<String> items,
-    Function(String) onChanged,
-  ) {
+    Function(String) onChanged, {
+    String Function(String)? itemLabelBuilder,
+  }) {
     return SizedBox(
       width: 260,
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(label, style: const TextStyle(fontWeight: FontWeight.w600)),
+          _labelWithAsterisk(label),
           const SizedBox(height: 6),
           DropdownButtonFormField<String>(
             value: value,
+            decoration: const InputDecoration(isDense: true),
+            hint: Text('Select ${label.replaceAll('*', '').trim()}'),
             items: items
-                .map((e) => DropdownMenuItem(value: e, child: Text(e)))
+                .map(
+                  (e) => DropdownMenuItem(
+                    value: e,
+                    child: Text(
+                      itemLabelBuilder != null ? itemLabelBuilder(e) : e,
+                    ),
+                  ),
+                )
                 .toList(),
             onChanged: (v) => onChanged(v!),
-            decoration: const InputDecoration(isDense: true),
+            validator: (v) => v == null ? 'Required' : null,
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _labelWithAsterisk(String label) {
+    if (!label.contains('*')) {
+      return Text(label, style: const TextStyle(fontWeight: FontWeight.w600));
+    }
+    final text = label.replaceAll('*', '').trim();
+    return RichText(
+      text: TextSpan(
+        text: text,
+        style: TextStyle(
+          fontWeight: FontWeight.w600,
+          color: Theme.of(context).textTheme.bodyLarge?.color,
+        ),
+        children: const [
+          TextSpan(
+            text: ' *',
+            style: TextStyle(color: Colors.red),
           ),
         ],
       ),
@@ -163,8 +312,7 @@ class _AddMarksScreenState extends State<AddMarksScreen> {
             flex: 3,
             child: TextFormField(
               controller: row.topic,
-              decoration:
-                  const InputDecoration(hintText: 'Topic / Assessment'),
+              decoration: const InputDecoration(hintText: 'Topic / Assessment'),
             ),
           ),
           const SizedBox(width: 8),
@@ -198,8 +346,7 @@ class _AddMarksScreenState extends State<AddMarksScreen> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        const Text('Exam Date *',
-            style: TextStyle(fontWeight: FontWeight.w600)),
+        _labelWithAsterisk('Exam Date *'),
         const SizedBox(height: 6),
         TextFormField(
           controller: _examDateController,
@@ -243,10 +390,18 @@ class _AddMarksScreenState extends State<AddMarksScreen> {
         ),
         const SizedBox(width: 12),
         ElevatedButton(
-          onPressed: () {},
-          style:
-              ElevatedButton.styleFrom(backgroundColor: AppColors.primary),
-          child: const Text('Save Marks'),
+          onPressed: _isLoading ? null : _saveAllMarks,
+          style: ElevatedButton.styleFrom(backgroundColor: AppColors.primary),
+          child: _isLoading
+              ? const SizedBox(
+                  width: 20,
+                  height: 20,
+                  child: CircularProgressIndicator(
+                    strokeWidth: 2,
+                    color: Colors.white,
+                  ),
+                )
+              : const Text('Save Marks'),
         ),
       ],
     );

@@ -2,6 +2,7 @@ import 'dart:async';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import '../models/student.dart';
 import '../models/attendance.dart';
+import '../models/marks.dart';
 
 /// Firebase Firestore-backed StudentService for production use.
 /// Provides real-time student data from Firestore with CRUD operations.
@@ -20,6 +21,8 @@ class StudentService {
 
   CollectionReference get _attendanceCollection =>
       _firestore.collection('attendance');
+
+  CollectionReference get _marksCollection => _firestore.collection('marks');
 
   StudentService._internal();
 
@@ -209,5 +212,37 @@ class StudentService {
           final total = snapshot.docs.length;
           return (presentCount / total) * 100.0;
         });
+  }
+
+  // ============ MARKS OPERATIONS (Firebase Firestore) ============
+
+  /// Save or update marks for a student
+  Future<void> saveMarks(Marks marks) async {
+    try {
+      if (marks.id.isNotEmpty) {
+        await _marksCollection.doc(marks.id).set(marks.toMap());
+      } else {
+        await _marksCollection.add(marks.toMap());
+      }
+    } catch (e) {
+      throw Exception('Failed to save marks: $e');
+    }
+  }
+
+  /// Get real-time stream of marks for a specific student
+  Stream<List<Marks>> marksStreamForStudent(String studentId) {
+    return _marksCollection
+        .where('studentId', isEqualTo: studentId)
+        .snapshots()
+        .map((snapshot) {
+          return snapshot.docs.map((doc) {
+            return Marks.fromMap(doc.id, doc.data() as Map<String, dynamic>);
+          }).toList();
+        });
+  }
+
+  /// Get list of available subjects
+  List<String> getSubjects() {
+    return ['Mathematics', 'Science', 'English', 'History', 'Computer'];
   }
 }

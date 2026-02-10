@@ -145,7 +145,7 @@ class MyApp extends StatelessWidget {
             '/dashboard': (context) => const DashboardScreen(),
             '/attendance': (context) => const AttendanceScreen(),
             '/students': (context) => const StudentsScreen(),
-            '/student-details': (context) => const StudentDetailsScreen(),
+            '/student-details': (context) => StudentDetailsScreen(),
             '/reports': (context) => const ReportsScreen(),
             '/add-student': (context) => const AddStudentScreen(),
             '/add-marks': (context) => const AddMarksScreen(),
