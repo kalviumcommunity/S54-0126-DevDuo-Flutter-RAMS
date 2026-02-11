@@ -5,6 +5,7 @@ class CustomTextField extends StatelessWidget {
   final bool isPassword;
   final TextEditingController? controller;
   final String? Function(String?)? validator;
+  final bool isReadOnly;
 
   const CustomTextField({
     super.key,
@@ -12,6 +13,7 @@ class CustomTextField extends StatelessWidget {
     this.isPassword = false,
     this.controller,
     this.validator,
+    this.isReadOnly = false
   });
 
   @override
@@ -20,6 +22,7 @@ class CustomTextField extends StatelessWidget {
       controller: controller,
       validator: validator,
       obscureText: isPassword,
+      readOnly: isReadOnly,
       decoration: InputDecoration(
         hintText: hint,
         filled: true,
