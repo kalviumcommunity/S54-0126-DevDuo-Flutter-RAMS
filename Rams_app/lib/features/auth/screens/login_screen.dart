@@ -11,19 +11,12 @@ class LoginScreen extends StatefulWidget {
 }
 
 class _LoginScreenState extends State<LoginScreen> {
-  final _emailController = TextEditingController();
+  final _emailController = TextEditingController(text: "admin@rams.com");
   final _passwordController = TextEditingController();
   final _formKey = GlobalKey<FormState>();
   final _authService = AuthService();
   bool _isLoading = false;
   String? _errorMessage;
-
-  @override
-  void dispose() {
-    _emailController.dispose();
-    _passwordController.dispose();
-    super.dispose();
-  }
 
   Future<void> _login() async {
     if (!_formKey.currentState!.validate()) return;
@@ -33,17 +26,22 @@ class _LoginScreenState extends State<LoginScreen> {
       _errorMessage = null;
     });
 
+    const allowedEmail = "admin@rams.com";
+
     try {
+      if (_emailController.text.trim() != allowedEmail) {
+        throw Exception("Only admin login is allowed.");
+      }
       await _authService.signIn(
         _emailController.text.trim(),
-        _passwordController.text,
+        _passwordController.text.trim(),
       );
       if (mounted) {
         Navigator.of(context).pushReplacementNamed('/dashboard');
       }
     } catch (e) {
       setState(() {
-        _errorMessage = e.toString();
+        _errorMessage = "Invalid credentials or not authorized.";
       });
     } finally {
       if (mounted) {
@@ -116,6 +114,7 @@ class _LoginScreenState extends State<LoginScreen> {
                     hint: 'Email',
                     controller: _emailController,
                     validator: _validateEmail,
+                    isReadOnly: true,
                   ),
 
                   const SizedBox(height: 16),
@@ -178,26 +177,6 @@ class _LoginScreenState extends State<LoginScreen> {
                   ),
 
                   const SizedBox(height: 16),
-
-                  // Sign up link
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      const Text('Don\'t have an account? '),
-                      GestureDetector(
-                        onTap: () => Navigator.of(
-                          context,
-                        ).pushReplacementNamed('/signup'),
-                        child: const Text(
-                          'Sign Up',
-                          style: TextStyle(
-                            color: AppColors.primary,
-                            fontWeight: FontWeight.bold,
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
 
                   const SizedBox(height: 16),
 
