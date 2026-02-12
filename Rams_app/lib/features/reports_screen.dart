@@ -1,10 +1,90 @@
+import 'dart:io';
+import 'dart:typed_data';
 import 'package:flutter/material.dart';
+import 'package:path_provider/path_provider.dart';
+import 'package:pdf/widgets.dart' as pw;
+import 'package:pdf/pdf.dart';
 import '../core/constants/app_colors.dart';
 import '../core/helpers/responsive_helper.dart';
 import '../core/widgets/theme_toggle.dart';
 
 class ReportsScreen extends StatelessWidget {
   const ReportsScreen({super.key});
+
+  // ───────────────── PDF GENERATION ─────────────────
+  Future<void> _exportPdf(BuildContext context) async {
+    try {
+      final pdf = pw.Document();
+
+      pdf.addPage(
+        pw.Page(
+          pageFormat: PdfPageFormat.a4,
+          build: (pw.Context context) {
+            return pw.Column(
+              crossAxisAlignment: pw.CrossAxisAlignment.start,
+              children: [
+                pw.Text(
+                  "RAMS Report",
+                  style: pw.TextStyle(
+                    fontSize: 24,
+                    fontWeight: pw.FontWeight.bold,
+                  ),
+                ),
+                pw.SizedBox(height: 20),
+                pw.Text("Overall Attendance Rate: 85%"),
+                pw.Text("Total Classes Conducted: 120"),
+                pw.Text("Total Students Present: 780"),
+                pw.Text("Total Students Absent: 140"),
+                pw.SizedBox(height: 20),
+                pw.Text(
+                  "Low Attendance Alerts",
+                  style: pw.TextStyle(fontWeight: pw.FontWeight.bold),
+                ),
+                pw.SizedBox(height: 10),
+                pw.Text("Priya Sharma - 68%"),
+                pw.Text("Rohan Mehta - 72%"),
+                pw.Text("Amit Kumar - 70%"),
+                pw.Text("Ananya Das - 74%"),
+              ],
+            );
+          },
+        ),
+      );
+
+      Uint8List bytes = await pdf.save();
+
+      Directory directory;
+
+    if (Platform.isAndroid) {
+      directory = Directory('/storage/emulated/0/Download');
+    } else if (Platform.isIOS) {
+      directory = await getApplicationDocumentsDirectory();
+    } else {
+      directory = await getDownloadsDirectory() ??
+          await getApplicationDocumentsDirectory();
+    }
+
+    final file = File("${directory.path}/RAMS_Report.pdf");
+    await file.writeAsBytes(bytes);
+
+
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text("PDF downloaded to: ${file.path}"),
+          ),
+        );
+      }
+    } catch (e) {
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text("Failed to export PDF"),
+          ),
+        );
+      }
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -51,7 +131,6 @@ class ReportsScreen extends StatelessWidget {
     );
   }
 
-  // ───────────────── Title ─────────────────
   Widget _title(BuildContext context, bool isMobile) {
     return Text(
       "Reports & Analytics",
@@ -63,7 +142,6 @@ class ReportsScreen extends StatelessWidget {
     );
   }
 
-  // ───────────────── Filters ─────────────────
   Widget _filtersCard(BuildContext context) {
     final responsive = ResponsiveHelper(context);
     final isWide = responsive.isDesktop;
@@ -98,20 +176,6 @@ class ReportsScreen extends StatelessWidget {
                   const Spacer(),
                   ElevatedButton(
                     onPressed: () {},
-                    style: ElevatedButton.styleFrom(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 24,
-                        vertical: 16,
-                      ),
-                      backgroundColor:
-                          Theme.of(context).brightness == Brightness.dark
-                          ? AppColors.primaryDark
-                          : AppColors.primary,
-                      foregroundColor: Colors.white,
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(8),
-                      ),
-                    ),
                     child: const Text("Generate Report"),
                   ),
                 ],
@@ -131,20 +195,6 @@ class ReportsScreen extends StatelessWidget {
                     width: double.infinity,
                     child: ElevatedButton(
                       onPressed: () {},
-                      style: ElevatedButton.styleFrom(
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 24,
-                          vertical: 16,
-                        ),
-                        backgroundColor:
-                            Theme.of(context).brightness == Brightness.dark
-                            ? AppColors.primaryDark
-                            : AppColors.primary,
-                        foregroundColor: Colors.white,
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(8),
-                        ),
-                      ),
                       child: const Text("Generate Report"),
                     ),
                   ),
@@ -161,12 +211,7 @@ class ReportsScreen extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(
-            label,
-            style: TextStyle(
-              color: Theme.of(context).textTheme.bodyLarge?.color,
-            ),
-          ),
+          Text(label),
           const SizedBox(height: 6),
           Container(
             padding: const EdgeInsets.symmetric(horizontal: 12),
@@ -174,22 +219,11 @@ class ReportsScreen extends StatelessWidget {
             decoration: BoxDecoration(
               border: Border.all(color: Theme.of(context).dividerColor),
               borderRadius: BorderRadius.circular(8),
-              color: Theme.of(context).cardColor,
             ),
             child: Row(
               children: [
-                Expanded(
-                  child: Text(
-                    value,
-                    style: TextStyle(
-                      color: Theme.of(context).textTheme.bodyLarge?.color,
-                    ),
-                  ),
-                ),
-                Icon(
-                  Icons.keyboard_arrow_down,
-                  color: Theme.of(context).iconTheme.color,
-                ),
+                Expanded(child: Text(value)),
+                const Icon(Icons.keyboard_arrow_down),
               ],
             ),
           ),
@@ -203,12 +237,7 @@ class ReportsScreen extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(
-            label,
-            style: TextStyle(
-              color: Theme.of(context).textTheme.bodyLarge?.color,
-            ),
-          ),
+          Text(label),
           const SizedBox(height: 6),
           Container(
             height: 48,
@@ -216,16 +245,10 @@ class ReportsScreen extends StatelessWidget {
             decoration: BoxDecoration(
               border: Border.all(color: Theme.of(context).dividerColor),
               borderRadius: BorderRadius.circular(8),
-              color: Theme.of(context).cardColor,
             ),
             child: Align(
               alignment: Alignment.centerLeft,
-              child: Text(
-                value,
-                style: TextStyle(
-                  color: Theme.of(context).textTheme.bodyLarge?.color,
-                ),
-              ),
+              child: Text(value),
             ),
           ),
         ],
@@ -233,15 +256,11 @@ class ReportsScreen extends StatelessWidget {
     );
   }
 
-  // Mobile versions without Expanded wrapper
   Widget _dropdownMobile(BuildContext context, String label, String value) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(
-          label,
-          style: TextStyle(color: Theme.of(context).textTheme.bodyLarge?.color),
-        ),
+        Text(label),
         const SizedBox(height: 6),
         Container(
           width: double.infinity,
@@ -250,22 +269,11 @@ class ReportsScreen extends StatelessWidget {
           decoration: BoxDecoration(
             border: Border.all(color: Theme.of(context).dividerColor),
             borderRadius: BorderRadius.circular(8),
-            color: Theme.of(context).cardColor,
           ),
           child: Row(
             children: [
-              Expanded(
-                child: Text(
-                  value,
-                  style: TextStyle(
-                    color: Theme.of(context).textTheme.bodyLarge?.color,
-                  ),
-                ),
-              ),
-              Icon(
-                Icons.keyboard_arrow_down,
-                color: Theme.of(context).iconTheme.color,
-              ),
+              Expanded(child: Text(value)),
+              const Icon(Icons.keyboard_arrow_down),
             ],
           ),
         ),
@@ -277,10 +285,7 @@ class ReportsScreen extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(
-          label,
-          style: TextStyle(color: Theme.of(context).textTheme.bodyLarge?.color),
-        ),
+        Text(label),
         const SizedBox(height: 6),
         Container(
           width: double.infinity,
@@ -289,89 +294,53 @@ class ReportsScreen extends StatelessWidget {
           decoration: BoxDecoration(
             border: Border.all(color: Theme.of(context).dividerColor),
             borderRadius: BorderRadius.circular(8),
-            color: Theme.of(context).cardColor,
           ),
           child: Align(
             alignment: Alignment.centerLeft,
-            child: Text(
-              value,
-              style: TextStyle(
-                color: Theme.of(context).textTheme.bodyLarge?.color,
-              ),
-            ),
+            child: Text(value),
           ),
         ),
       ],
     );
   }
 
-  // ───────────────── Stats ─────────────────
   Widget _statsGrid(BuildContext context) {
     final responsive = ResponsiveHelper(context);
-    final crossAxisCount = responsive.isMobile
-        ? 1
-        : (responsive.isTablet ? 2 : 4);
+    final crossAxisCount =
+        responsive.isMobile ? 1 : (responsive.isTablet ? 2 : 4);
 
     return GridView.count(
       shrinkWrap: true,
       crossAxisCount: crossAxisCount,
       crossAxisSpacing: 12,
       mainAxisSpacing: 12,
-      childAspectRatio: responsive.isMobile ? 2.5 : 2.2,
       physics: const NeverScrollableScrollPhysics(),
       children: [
-        _statCard(
-          context,
-          "Overall Attendance Rate",
-          "85%",
-          Icons.calendar_today,
-        ),
-        _statCard(context, "Total Classes Conducted", "120", Icons.menu_book),
-        _statCard(context, "Total Students Present", "780", Icons.group),
-        _statCard(context, "Total Students Absent", "140", Icons.person_off),
+        _statCard(context, "Overall Attendance Rate", "85%"),
+        _statCard(context, "Total Classes Conducted", "120"),
+        _statCard(context, "Total Students Present", "780"),
+        _statCard(context, "Total Students Absent", "140"),
       ],
     );
   }
 
-  Widget _statCard(
-    BuildContext context,
-    String title,
-    String value,
-    IconData icon,
-  ) {
+  Widget _statCard(BuildContext context, String title, String value) {
     return Container(
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
-        color: Theme.of(context).cardColor,
         borderRadius: BorderRadius.circular(12),
         border: Border.all(color: Theme.of(context).dividerColor),
       ),
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          Icon(
-            icon,
-            color: Theme.of(context).brightness == Brightness.dark
-                ? AppColors.primaryDark
-                : AppColors.primary,
-            size: 28,
-          ),
-          const SizedBox(height: 12),
-          Text(
-            title.toUpperCase(),
-            style: TextStyle(
-              fontSize: 11,
-              color: Theme.of(context).textTheme.bodySmall?.color,
-            ),
-            textAlign: TextAlign.center,
-          ),
+          Text(title.toUpperCase(), textAlign: TextAlign.center),
           const SizedBox(height: 6),
           Text(
             value,
-            style: TextStyle(
+            style: const TextStyle(
               fontSize: 26,
               fontWeight: FontWeight.bold,
-              color: Theme.of(context).textTheme.bodyLarge?.color,
             ),
           ),
         ],
@@ -379,7 +348,6 @@ class ReportsScreen extends StatelessWidget {
     );
   }
 
-  // ───────────────── Alerts + Actions ─────────────────
   Widget _alertsAndActions(BuildContext context) {
     final responsive = ResponsiveHelper(context);
     final isWide = responsive.isDesktop;
@@ -399,9 +367,16 @@ class ReportsScreen extends StatelessWidget {
                 Theme.of(context).brightness == Brightness.dark
                     ? AppColors.primaryDark
                     : AppColors.primary,
+                onPressed: () => _exportPdf(context),
               ),
               const SizedBox(height: 12),
-              _actionButton(context, "Print Report", Icons.print, Colors.green),
+              _actionButton(
+                context,
+                "Print Report",
+                Icons.print,
+                Colors.green,
+                onPressed: () {},
+              ),
             ],
           ),
         ],
@@ -421,6 +396,7 @@ class ReportsScreen extends StatelessWidget {
                   Theme.of(context).brightness == Brightness.dark
                       ? AppColors.primaryDark
                       : AppColors.primary,
+                  onPressed: () => _exportPdf(context),
                 ),
               ),
               const SizedBox(width: 12),
@@ -430,6 +406,7 @@ class ReportsScreen extends StatelessWidget {
                   "Print Report",
                   Icons.print,
                   Colors.green,
+                  onPressed: () {},
                 ),
               ),
             ],
@@ -441,71 +418,19 @@ class ReportsScreen extends StatelessWidget {
 
   Widget _lowAttendanceCard(BuildContext context) {
     return Card(
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
       child: Padding(
         padding: const EdgeInsets.all(20),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Row(
-              children: [
-                Icon(
-                  Icons.warning,
-                  color: Theme.of(context).brightness == Brightness.dark
-                      ? AppColors.errorDark
-                      : AppColors.error,
-                ),
-                const SizedBox(width: 8),
-                Text(
-                  "Low Attendance Alerts",
-                  style: TextStyle(
-                    fontWeight: FontWeight.bold,
-                    color: Theme.of(context).textTheme.bodyLarge?.color,
-                  ),
-                ),
-              ],
-            ),
-            const SizedBox(height: 16),
-            _alertRow(context, "Priya Sharma", "68%"),
-            _alertRow(context, "Rohan Mehta", "72%"),
-            _alertRow(context, "Amit Kumar", "70%"),
-            _alertRow(context, "Ananya Das", "74%"),
+          children: const [
+            Text("Low Attendance Alerts"),
+            SizedBox(height: 16),
+            Text("Priya Sharma - 68%"),
+            Text("Rohan Mehta - 72%"),
+            Text("Amit Kumar - 70%"),
+            Text("Ananya Das - 74%"),
           ],
         ),
-      ),
-    );
-  }
-
-  Widget _alertRow(BuildContext context, String name, String percent) {
-    final isDark = Theme.of(context).brightness == Brightness.dark;
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 8),
-      child: Row(
-        children: [
-          Expanded(
-            child: Text(
-              name,
-              style: TextStyle(
-                color: Theme.of(context).textTheme.bodyLarge?.color,
-              ),
-            ),
-          ),
-          Container(
-            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
-            decoration: BoxDecoration(
-              color: isDark
-                  ? AppColors.errorDark.withValues(alpha: 0.2)
-                  : AppColors.error.withValues(alpha: 0.1),
-              borderRadius: BorderRadius.circular(20),
-            ),
-            child: Text(
-              percent,
-              style: TextStyle(
-                color: isDark ? AppColors.errorDark : AppColors.error,
-              ),
-            ),
-          ),
-        ],
       ),
     );
   }
@@ -514,31 +439,27 @@ class ReportsScreen extends StatelessWidget {
     BuildContext context,
     String text,
     IconData icon,
-    Color color,
-  ) {
+    Color color, {
+    required VoidCallback onPressed,
+  }) {
     final responsive = ResponsiveHelper(context);
     final isWide = responsive.isDesktop;
 
     return SizedBox(
       width: isWide ? 200 : null,
       child: ElevatedButton.icon(
-        onPressed: () {},
+        onPressed: onPressed,
         icon: Icon(icon),
         label: Text(text),
         style: ElevatedButton.styleFrom(
           backgroundColor: color,
           foregroundColor: Colors.white,
-          padding: EdgeInsets.symmetric(
-            horizontal: isWide ? 16 : 12,
-            vertical: 16,
-          ),
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+          padding: const EdgeInsets.symmetric(vertical: 16),
         ),
       ),
     );
   }
 
-  // ───────────────── Footer ─────────────────
   Widget _footer(BuildContext context) {
     return Center(
       child: Text(
