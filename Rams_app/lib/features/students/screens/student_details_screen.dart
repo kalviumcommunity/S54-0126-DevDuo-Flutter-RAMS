@@ -120,7 +120,6 @@ class StudentDetailsScreen extends StatelessWidget {
         const SizedBox(height: 16),
         _subjectMarksCard(context, student, marksList),
         const SizedBox(height: 16),
-        
       ],
     );
   }
@@ -133,11 +132,7 @@ class StudentDetailsScreen extends StatelessWidget {
         padding: const EdgeInsets.all(16),
         child: Row(
           children: [
-            const CircleAvatar(
-              radius: 28,
-              backgroundColor: AppColors.primary,
-              child: Icon(Icons.person, color: Colors.white),
-            ),
+            _buildStudentDetailsAvatar(student),
             const SizedBox(width: 12),
             Column(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -162,6 +157,28 @@ class StudentDetailsScreen extends StatelessWidget {
           ],
         ),
       ),
+    );
+  }
+
+  Widget _buildStudentDetailsAvatar(Map<String, dynamic> student) {
+    final photoUrl = student['photoUrl'] as String?;
+
+    if (photoUrl != null && photoUrl.isNotEmpty) {
+      return CircleAvatar(
+        radius: 28,
+        backgroundColor: AppColors.primary,
+        backgroundImage: NetworkImage(photoUrl),
+        onBackgroundImageError: (exception, stackTrace) {
+          // Fallback to default avatar on error
+        },
+        child: const Icon(Icons.person, color: Colors.white),
+      );
+    }
+
+    return const CircleAvatar(
+      radius: 28,
+      backgroundColor: AppColors.primary,
+      child: Icon(Icons.person, color: Colors.white),
     );
   }
 
@@ -282,7 +299,6 @@ class StudentDetailsScreen extends StatelessWidget {
       ),
     );
   }
-
 
   // ---------------- RIGHT COLUMN ----------------
 

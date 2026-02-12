@@ -117,7 +117,7 @@ class _AttendanceScreenState extends State<AttendanceScreen> {
         SizedBox(
           width: double.infinity,
           child: DropdownButtonFormField<String>(
-            value: selectedSubject,
+            initialValue: selectedSubject,
             hint: const Text('Select Subject'),
             decoration: const InputDecoration(
               border: OutlineInputBorder(),
@@ -170,7 +170,7 @@ class _AttendanceScreenState extends State<AttendanceScreen> {
             SizedBox(
               width: double.infinity,
               child: DropdownButtonFormField<String>(
-                value: classList.contains(selectedClass)
+                initialValue: classList.contains(selectedClass)
                     ? selectedClass
                     : 'All Classes',
                 decoration: const InputDecoration(

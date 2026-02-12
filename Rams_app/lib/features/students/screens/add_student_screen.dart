@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import '../../../core/constants/app_colors.dart';
 import '../../../core/helpers/responsive_helper.dart';
+import '../../../core/helpers/validation_helper.dart';
 import '../../../services/student_service.dart';
 import '../../../models/student.dart';
 
@@ -74,7 +75,54 @@ class _AddStudentScreenState extends State<AddStudentScreen> {
     setState(() => _isLoading = true);
 
     try {
-      final student = Student(
+      // Create student object first
+      late Student student;
+      String? photoUrl;
+
+      // If there's a profile image, upload it to Firebase Storage
+      if (_profileImage != null) {
+        try {
+          // Temporarily create student with empty ID for naming
+          final tempStudent = Student(
+            id: '',
+            name: _nameController.text.trim(),
+            studentId: _studentIdController.text.trim(),
+            klass: _selectedClass,
+            dateOfBirth: _dobController.text.trim().isNotEmpty
+                ? _dobController.text
+                : null,
+            guardianName: _guardianNameController.text.trim(),
+            guardianContact: _guardianContactController.text.trim(),
+            enrollmentDate: _enrollmentDateController.text.trim().isNotEmpty
+                ? _enrollmentDateController.text
+                : null,
+            notes: _notesController.text.trim().isNotEmpty
+                ? _notesController.text
+                : null,
+            createdAt: DateTime.now(),
+          );
+
+          // Use studentId for upload naming
+          final uploadId = _studentIdController.text.trim();
+          photoUrl = await _studentService.uploadProfileImage(
+            uploadId,
+            _profileImage!,
+          );
+        } catch (e) {
+          if (mounted) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(
+                content: Text('Error uploading image: ${e.toString()}'),
+                backgroundColor: Colors.orange,
+              ),
+            );
+          }
+          // Continue without image if upload fails
+        }
+      }
+
+      // Create student with photoUrl if available
+      student = Student(
         id: '',
         name: _nameController.text.trim(),
         studentId: _studentIdController.text.trim(),
@@ -90,6 +138,7 @@ class _AddStudentScreenState extends State<AddStudentScreen> {
         notes: _notesController.text.trim().isNotEmpty
             ? _notesController.text
             : null,
+        photoUrl: photoUrl,
         createdAt: DateTime.now(),
       );
 
@@ -151,18 +200,14 @@ class _AddStudentScreenState extends State<AddStudentScreen> {
                       'John Doe',
                       _nameController,
                       required: true,
-                      validator: (v) => v == null || v.isEmpty
-                          ? 'Please enter student name'
-                          : null,
+                      validator: ValidationHelper.validateName,
                     ),
                     _input(
                       'Student ID',
                       'STD12345',
                       _studentIdController,
                       required: true,
-                      validator: (v) => v == null || v.isEmpty
-                          ? 'Please enter student ID'
-                          : null,
+                      validator: ValidationHelper.validateStudentId,
                     ),
                     _dropdown('Class', ['Grade 8', 'Grade 9', 'Grade 10']),
                     _dateInput('Date of Birth', 'DD/MM/YYYY', _dobController),
@@ -171,18 +216,14 @@ class _AddStudentScreenState extends State<AddStudentScreen> {
                       'Jane Doe',
                       _guardianNameController,
                       required: true,
-                      validator: (v) => v == null || v.isEmpty
-                          ? 'Please enter guardian name'
-                          : null,
+                      validator: ValidationHelper.validateName,
                     ),
                     _input(
                       'Guardian Contact',
                       '(123) 456-7890',
                       _guardianContactController,
                       required: true,
-                      validator: (v) => v == null || v.isEmpty
-                          ? 'Please enter guardian contact'
-                          : null,
+                      validator: ValidationHelper.validatePhoneNumber,
                     ),
                     _dateInput(
                       'Enrollment Date',
@@ -216,15 +257,25 @@ class _AddStudentScreenState extends State<AddStudentScreen> {
           'Upload Photo',
           style: TextStyle(fontWeight: FontWeight.w600),
         ),
+        const SizedBox(height: 4),
+        const Text(
+          'Optional',
+          style: TextStyle(fontSize: 12, color: Colors.grey),
+        ),
         const SizedBox(height: 8),
         GestureDetector(
           onTap: _pickImage,
           child: Container(
-            height: 90,
-            width: 90,
+            height: 120,
+            width: 120,
             decoration: BoxDecoration(
-              borderRadius: BorderRadius.circular(8),
-              border: Border.all(color: Colors.grey.shade300),
+              borderRadius: BorderRadius.circular(12),
+              border: Border.all(
+                color: _profileImage != null
+                    ? AppColors.primary
+                    : Colors.grey.shade300,
+                width: _profileImage != null ? 2 : 1,
+              ),
               image: _profileImage != null
                   ? DecorationImage(
                       image: FileImage(_profileImage!),
@@ -233,14 +284,50 @@ class _AddStudentScreenState extends State<AddStudentScreen> {
                   : null,
             ),
             child: _profileImage == null
-                ? const Icon(Icons.camera_alt, color: Colors.grey)
+                ? const Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Icon(Icons.camera_alt, color: Colors.grey, size: 32),
+                      SizedBox(height: 4),
+                      Text(
+                        'Tap to upload',
+                        style: TextStyle(fontSize: 12, color: Colors.grey),
+                      ),
+                    ],
+                  )
                 : null,
           ),
         ),
-        const SizedBox(height: 6),
-        const Text(
-          'JPG, PNG, up to 5MB',
-          style: TextStyle(fontSize: 12, color: Colors.grey),
+        const SizedBox(height: 8),
+        Row(
+          children: [
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: const [
+                  Text(
+                    'JPG, PNG, up to 5MB',
+                    style: TextStyle(fontSize: 12, color: Colors.grey),
+                  ),
+                  SizedBox(height: 4),
+                  Text(
+                    'Will be displayed on all student views',
+                    style: TextStyle(
+                      fontSize: 11,
+                      color: Colors.grey,
+                      fontStyle: FontStyle.italic,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            if (_profileImage != null)
+              TextButton.icon(
+                onPressed: () => setState(() => _profileImage = null),
+                icon: const Icon(Icons.clear, size: 18),
+                label: const Text('Remove'),
+              ),
+          ],
         ),
       ],
     );
@@ -349,7 +436,7 @@ class _AddStudentScreenState extends State<AddStudentScreen> {
           ),
           const SizedBox(height: 6),
           DropdownButtonFormField<String>(
-            value: _selectedClass,
+            initialValue: _selectedClass,
             items: items
                 .map((e) => DropdownMenuItem(value: e, child: Text(e)))
                 .toList(),
