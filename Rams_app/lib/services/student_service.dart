@@ -85,8 +85,9 @@ class StudentService {
   /// Returns the download URL of the uploaded image
   Future<String> uploadProfileImage(String studentId, File imageFile) async {
     try {
+      final fileExtension = imageFile.path.split('.').last;
       final fileName =
-          'profile_${studentId}_${DateTime.now().millisecondsSinceEpoch}.jpg';
+          'profile_${studentId}_${DateTime.now().millisecondsSinceEpoch}.$fileExtension';
       final ref = _storage.ref().child('student_profiles/$fileName');
 
       await ref.putFile(imageFile);

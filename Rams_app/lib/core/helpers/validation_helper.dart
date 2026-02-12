@@ -128,7 +128,7 @@ class ValidationHelper {
       return null; // Optional field
     }
 
-    if (value.length > 500) {
+    if (value.trim().length > 500) {
       return 'Notes cannot exceed 500 characters';
     }
 

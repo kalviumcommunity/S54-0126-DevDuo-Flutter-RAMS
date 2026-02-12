@@ -82,26 +82,6 @@ class _AddStudentScreenState extends State<AddStudentScreen> {
       // If there's a profile image, upload it to Firebase Storage
       if (_profileImage != null) {
         try {
-          // Temporarily create student with empty ID for naming
-          final tempStudent = Student(
-            id: '',
-            name: _nameController.text.trim(),
-            studentId: _studentIdController.text.trim(),
-            klass: _selectedClass,
-            dateOfBirth: _dobController.text.trim().isNotEmpty
-                ? _dobController.text
-                : null,
-            guardianName: _guardianNameController.text.trim(),
-            guardianContact: _guardianContactController.text.trim(),
-            enrollmentDate: _enrollmentDateController.text.trim().isNotEmpty
-                ? _enrollmentDateController.text
-                : null,
-            notes: _notesController.text.trim().isNotEmpty
-                ? _notesController.text
-                : null,
-            createdAt: DateTime.now(),
-          );
-
           // Use studentId for upload naming
           final uploadId = _studentIdController.text.trim();
           photoUrl = await _studentService.uploadProfileImage(
@@ -112,7 +92,7 @@ class _AddStudentScreenState extends State<AddStudentScreen> {
           if (mounted) {
             ScaffoldMessenger.of(context).showSnackBar(
               SnackBar(
-                content: Text('Error uploading image: ${e.toString()}'),
+                content: Text('Error uploading image'),
                 backgroundColor: Colors.orange,
               ),
             );
@@ -157,7 +137,7 @@ class _AddStudentScreenState extends State<AddStudentScreen> {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('Error: ${e.toString()}'),
+            content: Text('Error Creating Student'),
             backgroundColor: Colors.red,
           ),
         );

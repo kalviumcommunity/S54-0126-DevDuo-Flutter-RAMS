@@ -162,23 +162,18 @@ class StudentDetailsScreen extends StatelessWidget {
 
   Widget _buildStudentDetailsAvatar(Map<String, dynamic> student) {
     final photoUrl = student['photoUrl'] as String?;
+    final hasImage = photoUrl != null && photoUrl.isNotEmpty;
 
-    if (photoUrl != null && photoUrl.isNotEmpty) {
-      return CircleAvatar(
-        radius: 28,
-        backgroundColor: AppColors.primary,
-        backgroundImage: NetworkImage(photoUrl),
-        onBackgroundImageError: (exception, stackTrace) {
-          // Fallback to default avatar on error
-        },
-        child: const Icon(Icons.person, color: Colors.white),
-      );
-    }
-
-    return const CircleAvatar(
+    return CircleAvatar(
       radius: 28,
       backgroundColor: AppColors.primary,
-      child: Icon(Icons.person, color: Colors.white),
+      backgroundImage: hasImage ? NetworkImage(photoUrl) : null,
+      onBackgroundImageError: hasImage
+          ? (exception, stackTrace) {
+              debugPrint('Failed to load student profile image: $exception');
+            }
+          : null,
+      child: hasImage ? null : const Icon(Icons.person, color: Colors.white),
     );
   }
 
