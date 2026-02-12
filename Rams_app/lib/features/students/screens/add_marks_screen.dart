@@ -188,7 +188,7 @@ class _AddMarksScreenState extends State<AddMarksScreen> {
                       ),
                     ),
                     const SizedBox(height: 12),
-                    ..._rows.map((row) => _marksRow(row, isMobile)).toList(),
+                    ..._rows.map((row) => _marksRow(row, isMobile)),
                     const SizedBox(height: 8),
                     TextButton.icon(
                       onPressed: () => setState(() => _rows.add(_MarksRow())),
@@ -288,7 +288,7 @@ class _AddMarksScreenState extends State<AddMarksScreen> {
           _labelWithAsterisk(label),
           const SizedBox(height: 6),
           DropdownButtonFormField<String>(
-            value: value,
+            initialValue: value,
             decoration: const InputDecoration(isDense: true),
             hint: Text('Select ${label.replaceAll('*', '').trim()}'),
             items: items

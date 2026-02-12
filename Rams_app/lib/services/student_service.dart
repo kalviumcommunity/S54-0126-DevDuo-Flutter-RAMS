@@ -1,5 +1,7 @@
 import 'dart:async';
+import 'dart:io';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_storage/firebase_storage.dart';
 import '../models/student.dart';
 import '../models/attendance.dart';
 import '../models/marks.dart';
@@ -14,6 +16,9 @@ class StudentService {
 
   // Firestore instance
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
+
+  // Firebase Storage instance
+  final FirebaseStorage _storage = FirebaseStorage.instance;
 
   // Collection references
   CollectionReference get _studentsCollection =>
@@ -71,6 +76,41 @@ class StudentService {
       }
     } catch (e) {
       throw Exception('Failed to create student: $e');
+    }
+  }
+
+  /// Upload a profile image to Firebase Storage and return the download URL
+  /// [studentId] is used to create a unique file name
+  /// [imageFile] is the File object containing the image data
+  /// Returns the download URL of the uploaded image
+  Future<String> uploadProfileImage(String studentId, File imageFile) async {
+    try {
+      final fileExtension = imageFile.path.split('.').last;
+      final fileName =
+          'profile_${studentId}_${DateTime.now().millisecondsSinceEpoch}.$fileExtension';
+      final ref = _storage.ref().child('student_profiles/$fileName');
+
+      await ref.putFile(imageFile);
+      final downloadUrl = await ref.getDownloadURL();
+
+      return downloadUrl;
+    } catch (e) {
+      throw Exception('Failed to upload profile image: $e');
+    }
+  }
+
+  /// Update student's profile image URL
+  Future<void> updateStudentProfileImage(
+    String studentId,
+    String photoUrl,
+  ) async {
+    try {
+      await _studentsCollection.doc(studentId).update({
+        'photoUrl': photoUrl,
+        'updatedAt': FieldValue.serverTimestamp(),
+      });
+    } catch (e) {
+      throw Exception('Failed to update student profile image: $e');
     }
   }
 

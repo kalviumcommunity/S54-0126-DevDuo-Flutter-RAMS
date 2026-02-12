@@ -30,6 +30,7 @@ class _StudentsScreenState extends State<StudentsScreen> {
             'id': s.studentId.isNotEmpty ? s.studentId : s.id,
             'docId': s.id,
             'class': s.klass,
+            'photoUrl': s.photoUrl,
           },
         )
         .where((student) {
@@ -161,7 +162,7 @@ class _StudentsScreenState extends State<StudentsScreen> {
             SizedBox(
               width: double.infinity,
               child: DropdownButtonFormField<String>(
-                value: classList.contains(selectedClass)
+                initialValue: classList.contains(selectedClass)
                     ? selectedClass
                     : 'All Classes',
                 decoration: const InputDecoration(
@@ -297,11 +298,7 @@ class _StudentsScreenState extends State<StudentsScreen> {
         ),
         child: Row(
           children: [
-            const CircleAvatar(
-              radius: 20,
-              backgroundColor: AppColors.primary,
-              child: Icon(Icons.person, color: Colors.white, size: 20),
-            ),
+            _buildStudentAvatar(student),
             const SizedBox(width: 12),
             Expanded(
               child: Column(
@@ -353,6 +350,26 @@ class _StudentsScreenState extends State<StudentsScreen> {
           ],
         ),
       ),
+    );
+  }
+
+  Widget _buildStudentAvatar(Map<String, dynamic> student) {
+    final photoUrl = student['photoUrl'] as String?;
+
+    final hasImage = photoUrl != null && photoUrl.isNotEmpty;
+
+    return CircleAvatar(
+      radius: 20,
+      backgroundColor: AppColors.primary,
+      backgroundImage: hasImage ? NetworkImage(photoUrl) : null,
+      onBackgroundImageError: hasImage
+          ? (exception, stackTrace) {
+              debugPrint('Failed to load student profile image: $exception');
+            }
+          : null,
+      child: hasImage
+          ? null
+          : const Icon(Icons.person, color: Colors.white, size: 20),
     );
   }
 }
