@@ -75,6 +75,50 @@ class _AddStudentScreenState extends State<AddStudentScreen> {
     setState(() => _isLoading = true);
 
     try {
+      final trimmedStudentId = _studentIdController.text.trim();
+
+      // Check for duplicate student ID
+      final isDuplicate = await _studentService.checkStudentIdExists(
+        trimmedStudentId,
+      );
+      if (isDuplicate) {
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text(
+                'Student ID "$trimmedStudentId" is already in use. Please use a unique ID.',
+              ),
+              backgroundColor: Colors.red,
+            ),
+          );
+        }
+        setState(() => _isLoading = false);
+        return;
+      }
+
+      // Validate date range if both dates are provided
+      final dobText = _dobController.text.trim();
+      final enrollmentText = _enrollmentDateController.text.trim();
+
+      if (dobText.isNotEmpty && enrollmentText.isNotEmpty) {
+        final dateRangeError = ValidationHelper.validateDobBeforeEnrollment(
+          dobText,
+          enrollmentText,
+        );
+        if (dateRangeError != null) {
+          if (mounted) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(
+                content: Text(dateRangeError),
+                backgroundColor: Colors.red,
+              ),
+            );
+          }
+          setState(() => _isLoading = false);
+          return;
+        }
+      }
+
       // Create student object first
       late Student student;
       String? photoUrl;
@@ -83,16 +127,17 @@ class _AddStudentScreenState extends State<AddStudentScreen> {
       if (_profileImage != null) {
         try {
           // Use studentId for upload naming
-          final uploadId = _studentIdController.text.trim();
           photoUrl = await _studentService.uploadProfileImage(
-            uploadId,
+            trimmedStudentId,
             _profileImage!,
           );
         } catch (e) {
           if (mounted) {
             ScaffoldMessenger.of(context).showSnackBar(
               SnackBar(
-                content: Text('Error uploading image'),
+                content: Text(
+                  'Error uploading photo. Continuing without photo.',
+                ),
                 backgroundColor: Colors.orange,
               ),
             );
@@ -105,16 +150,12 @@ class _AddStudentScreenState extends State<AddStudentScreen> {
       student = Student(
         id: '',
         name: _nameController.text.trim(),
-        studentId: _studentIdController.text.trim(),
+        studentId: trimmedStudentId,
         klass: _selectedClass,
-        dateOfBirth: _dobController.text.trim().isNotEmpty
-            ? _dobController.text
-            : null,
+        dateOfBirth: dobText.isNotEmpty ? dobText : null,
         guardianName: _guardianNameController.text.trim(),
         guardianContact: _guardianContactController.text.trim(),
-        enrollmentDate: _enrollmentDateController.text.trim().isNotEmpty
-            ? _enrollmentDateController.text
-            : null,
+        enrollmentDate: enrollmentText.isNotEmpty ? enrollmentText : null,
         notes: _notesController.text.trim().isNotEmpty
             ? _notesController.text
             : null,
@@ -137,7 +178,7 @@ class _AddStudentScreenState extends State<AddStudentScreen> {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('Error Creating Student'),
+            content: Text('Error creating student: ${e.toString()}'),
             backgroundColor: Colors.red,
           ),
         );
@@ -190,7 +231,12 @@ class _AddStudentScreenState extends State<AddStudentScreen> {
                       validator: ValidationHelper.validateStudentId,
                     ),
                     _dropdown('Class', ['Grade 8', 'Grade 9', 'Grade 10']),
-                    _dateInput('Date of Birth', 'DD/MM/YYYY', _dobController),
+                    _dateInput(
+                      'Date of Birth',
+                      'DD/MM/YYYY',
+                      _dobController,
+                      validator: ValidationHelper.validateDateFormat,
+                    ),
                     _input(
                       'Guardian Name',
                       'Jane Doe',
@@ -209,6 +255,7 @@ class _AddStudentScreenState extends State<AddStudentScreen> {
                       'Enrollment Date',
                       'DD/MM/YYYY',
                       _enrollmentDateController,
+                      validator: ValidationHelper.validateDateFormat,
                     ),
                     _notes(),
 
@@ -316,8 +363,9 @@ class _AddStudentScreenState extends State<AddStudentScreen> {
   Widget _dateInput(
     String label,
     String hint,
-    TextEditingController controller,
-  ) {
+    TextEditingController controller, {
+    String? Function(String?)? validator,
+  }) {
     return Padding(
       padding: const EdgeInsets.only(bottom: 14),
       child: Column(
@@ -328,6 +376,7 @@ class _AddStudentScreenState extends State<AddStudentScreen> {
           TextFormField(
             controller: controller,
             readOnly: true,
+            validator: validator,
             onTap: () => _pickDate(controller),
             decoration: InputDecoration(
               hintText: hint,

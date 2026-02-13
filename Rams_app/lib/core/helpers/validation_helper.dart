@@ -28,9 +28,7 @@ class ValidationHelper {
       return 'Please enter an email address';
     }
 
-    final emailRegex = RegExp(
-      r'^[\w\.-]+@([\w-]+\.)+[\w-]{2,4}$',
-    );
+    final emailRegex = RegExp(r'^[\w\.-]+@([\w-]+\.)+[\w-]{2,4}$');
 
     if (!emailRegex.hasMatch(value.trim())) {
       return 'Please enter a valid email address';
@@ -130,6 +128,106 @@ class ValidationHelper {
 
     if (value.trim().length > 500) {
       return 'Notes cannot exceed 500 characters';
+    }
+
+    return null;
+  }
+
+  /// Parse date from DD/MM/YYYY format
+  /// Returns null if parsing fails
+  static DateTime? parseDate(String dateString) {
+    try {
+      final parts = dateString.split('/');
+      if (parts.length != 3) return null;
+
+      final day = int.parse(parts[0]);
+      final month = int.parse(parts[1]);
+      final year = int.parse(parts[2]);
+
+      final date = DateTime(year, month, day);
+
+      // Ensure exact match (prevents 31/02/2023 type issues)
+      if (date.day != day || date.month != month || date.year != year) {
+        return null;
+      }
+
+      return date;
+    } catch (_) {
+      return null;
+    }
+  }
+
+  /// Validate that one date is before another
+  /// Both dates should be in DD/MM/YYYY format
+  /// Returns error message if fromDate is after toDate, null otherwise
+  static String? validateDateRange(
+    String? fromDateStr,
+    String? toDateStr, {
+    String fromLabel = 'Start date',
+    String toLabel = 'End date',
+  }) {
+    // If either date is empty, skip validation
+    if (fromDateStr == null ||
+        fromDateStr.trim().isEmpty ||
+        toDateStr == null ||
+        toDateStr.trim().isEmpty) {
+      return null;
+    }
+
+    final fromDate = parseDate(fromDateStr.trim());
+    final toDate = parseDate(toDateStr.trim());
+
+    if (fromDate == null || toDate == null) {
+      return 'Invalid date format';
+    }
+
+    if (fromDate.isAfter(toDate)) {
+      return '$fromLabel must be before or equal to $toLabel';
+    }
+
+    return null;
+  }
+
+  /// Validate that Date of Birth is before Enrollment Date
+  static String? validateDobBeforeEnrollment(
+    String? dobStr,
+    String? enrollmentStr,
+  ) {
+    // If either date is empty, skip validation
+    if (dobStr == null ||
+        dobStr.trim().isEmpty ||
+        enrollmentStr == null ||
+        enrollmentStr.trim().isEmpty) {
+      return null;
+    }
+
+    final dob = parseDate(dobStr.trim());
+    final enrollment = parseDate(enrollmentStr.trim());
+
+    if (dob == null || enrollment == null) {
+      return 'Invalid date format';
+    }
+
+    if (dob.isAfter(enrollment)) {
+      return 'Date of Birth must be before Enrollment Date';
+    }
+
+    return null;
+  }
+
+  /// Validate that a date is not in the future
+  static String? validateNotFuture(String? dateStr, String fieldName) {
+    if (dateStr == null || dateStr.trim().isEmpty) {
+      return null;
+    }
+
+    final date = parseDate(dateStr.trim());
+    if (date == null) {
+      return 'Invalid date format';
+    }
+
+    if (date.isAfter(DateTime.now())) {
+      return '$fieldName cannot be in the future';
     }
 
     return null;

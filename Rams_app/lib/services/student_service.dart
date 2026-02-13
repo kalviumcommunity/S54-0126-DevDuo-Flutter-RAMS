@@ -65,6 +65,19 @@ class StudentService {
     });
   }
 
+  /// Check if a student ID (roll number) already exists
+  /// Returns true if the student ID is already in use
+  Future<bool> checkStudentIdExists(String studentId) async {
+    try {
+      final query = await _studentsCollection
+          .where('studentId', isEqualTo: studentId)
+          .get();
+      return query.docs.isNotEmpty;
+    } catch (e) {
+      throw Exception('Failed to check student ID: $e');
+    }
+  }
+
   /// Create a new student in Firestore
   Future<void> createStudent(Student student) async {
     try {
