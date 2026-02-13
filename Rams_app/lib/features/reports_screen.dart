@@ -6,10 +6,21 @@ import 'package:pdf/widgets.dart' as pw;
 import 'package:pdf/pdf.dart';
 import '../core/constants/app_colors.dart';
 import '../core/helpers/responsive_helper.dart';
+import '../core/helpers/validation_helper.dart';
 import '../core/widgets/theme_toggle.dart';
 
-class ReportsScreen extends StatelessWidget {
+class ReportsScreen extends StatefulWidget {
   const ReportsScreen({super.key});
+
+  @override
+  State<ReportsScreen> createState() => _ReportsScreenState();
+}
+
+class _ReportsScreenState extends State<ReportsScreen> {
+  String? fromDate;
+  String? toDate;
+  String? selectedClass;
+  String? selectedStudent;
 
   // ───────────────── PDF GENERATION ─────────────────
   Future<void> _exportPdf(BuildContext context) async {
@@ -55,33 +66,29 @@ class ReportsScreen extends StatelessWidget {
 
       Directory directory;
 
-    if (Platform.isAndroid) {
-      directory = Directory('/storage/emulated/0/Download');
-    } else if (Platform.isIOS) {
-      directory = await getApplicationDocumentsDirectory();
-    } else {
-      directory = await getDownloadsDirectory() ??
-          await getApplicationDocumentsDirectory();
-    }
+      if (Platform.isAndroid) {
+        directory = Directory('/storage/emulated/0/Download');
+      } else if (Platform.isIOS) {
+        directory = await getApplicationDocumentsDirectory();
+      } else {
+        directory =
+            await getDownloadsDirectory() ??
+            await getApplicationDocumentsDirectory();
+      }
 
-    final file = File("${directory.path}/RAMS_Report.pdf");
-    await file.writeAsBytes(bytes);
-
+      final file = File("${directory.path}/RAMS_Report.pdf");
+      await file.writeAsBytes(bytes);
 
       if (context.mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text("PDF downloaded to: ${file.path}"),
-          ),
+          SnackBar(content: Text("PDF downloaded to: ${file.path}")),
         );
       }
     } catch (e) {
       if (context.mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text("Failed to export PDF"),
-          ),
-        );
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(const SnackBar(content: Text("Failed to export PDF")));
       }
     }
   }
@@ -166,16 +173,34 @@ class ReportsScreen extends StatelessWidget {
             if (isWide)
               Row(
                 children: [
-                  _dropdown(context, "Class", "Class 10A"),
+                  _dropdown(context, "Class", selectedClass ?? "Class 10A"),
                   const SizedBox(width: 12),
-                  _dateField(context, "From Date", "2023-01-01"),
+                  GestureDetector(
+                    onTap: () => _selectFromDate(context),
+                    child: _dateField(
+                      context,
+                      "From Date",
+                      fromDate ?? "Select Date",
+                    ),
+                  ),
                   const SizedBox(width: 12),
-                  _dateField(context, "To Date", "2023-01-31"),
+                  GestureDetector(
+                    onTap: () => _selectToDate(context),
+                    child: _dateField(
+                      context,
+                      "To Date",
+                      toDate ?? "Select Date",
+                    ),
+                  ),
                   const SizedBox(width: 12),
-                  _dropdown(context, "Student", "Select Student"),
+                  _dropdown(
+                    context,
+                    "Student",
+                    selectedStudent ?? "Select Student",
+                  ),
                   const Spacer(),
                   ElevatedButton(
-                    onPressed: () {},
+                    onPressed: _validateAndGenerateReport,
                     child: const Text("Generate Report"),
                   ),
                 ],
@@ -183,18 +208,40 @@ class ReportsScreen extends StatelessWidget {
             else
               Column(
                 children: [
-                  _dropdownMobile(context, "Class", "Class 10A"),
+                  _dropdownMobile(
+                    context,
+                    "Class",
+                    selectedClass ?? "Class 10A",
+                  ),
                   const SizedBox(height: 12),
-                  _dateFieldMobile(context, "From Date", "2023-01-01"),
+                  GestureDetector(
+                    onTap: () => _selectFromDate(context),
+                    child: _dateFieldMobile(
+                      context,
+                      "From Date",
+                      fromDate ?? "Select Date",
+                    ),
+                  ),
                   const SizedBox(height: 12),
-                  _dateFieldMobile(context, "To Date", "2023-01-31"),
+                  GestureDetector(
+                    onTap: () => _selectToDate(context),
+                    child: _dateFieldMobile(
+                      context,
+                      "To Date",
+                      toDate ?? "Select Date",
+                    ),
+                  ),
                   const SizedBox(height: 12),
-                  _dropdownMobile(context, "Student", "Select Student"),
+                  _dropdownMobile(
+                    context,
+                    "Student",
+                    selectedStudent ?? "Select Student",
+                  ),
                   const SizedBox(height: 16),
                   SizedBox(
                     width: double.infinity,
                     child: ElevatedButton(
-                      onPressed: () {},
+                      onPressed: _validateAndGenerateReport,
                       child: const Text("Generate Report"),
                     ),
                   ),
@@ -203,6 +250,75 @@ class ReportsScreen extends StatelessWidget {
           ],
         ),
       ),
+    );
+  }
+
+  Future<void> _selectFromDate(BuildContext context) async {
+    final date = await showDatePicker(
+      context: context,
+      initialDate: DateTime.now(),
+      firstDate: DateTime(2020),
+      lastDate: DateTime.now(),
+    );
+
+    if (date != null) {
+      setState(() {
+        fromDate = "${date.day}/${date.month}/${date.year}";
+      });
+    }
+  }
+
+  Future<void> _selectToDate(BuildContext context) async {
+    final date = await showDatePicker(
+      context: context,
+      initialDate: DateTime.now(),
+      firstDate: DateTime(2020),
+      lastDate: DateTime.now(),
+    );
+
+    if (date != null) {
+      setState(() {
+        toDate = "${date.day}/${date.month}/${date.year}";
+      });
+    }
+  }
+
+  void _validateAndGenerateReport() {
+    // Validate that at least one filter is selected
+    if (fromDate == null &&
+        toDate == null &&
+        selectedClass == null &&
+        selectedStudent == null) {
+      _showError('Please select at least one filter');
+      return;
+    }
+
+    // Validate date range if both dates are provided
+    if (fromDate != null && toDate != null) {
+      final error = ValidationHelper.validateDateRange(
+        fromDate,
+        toDate,
+        fromLabel: 'From Date',
+        toLabel: 'To Date',
+      );
+      if (error != null) {
+        _showError(error);
+        return;
+      }
+    }
+
+    // If all validation passes, generate report
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(
+        content: Text('Report generated successfully!'),
+        backgroundColor: Colors.green,
+      ),
+    );
+  }
+
+  void _showError(String message) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text(message), backgroundColor: Colors.red),
     );
   }
 
@@ -246,10 +362,7 @@ class ReportsScreen extends StatelessWidget {
               border: Border.all(color: Theme.of(context).dividerColor),
               borderRadius: BorderRadius.circular(8),
             ),
-            child: Align(
-              alignment: Alignment.centerLeft,
-              child: Text(value),
-            ),
+            child: Align(alignment: Alignment.centerLeft, child: Text(value)),
           ),
         ],
       ),
@@ -295,10 +408,7 @@ class ReportsScreen extends StatelessWidget {
             border: Border.all(color: Theme.of(context).dividerColor),
             borderRadius: BorderRadius.circular(8),
           ),
-          child: Align(
-            alignment: Alignment.centerLeft,
-            child: Text(value),
-          ),
+          child: Align(alignment: Alignment.centerLeft, child: Text(value)),
         ),
       ],
     );
@@ -306,8 +416,9 @@ class ReportsScreen extends StatelessWidget {
 
   Widget _statsGrid(BuildContext context) {
     final responsive = ResponsiveHelper(context);
-    final crossAxisCount =
-        responsive.isMobile ? 1 : (responsive.isTablet ? 2 : 4);
+    final crossAxisCount = responsive.isMobile
+        ? 1
+        : (responsive.isTablet ? 2 : 4);
 
     return GridView.count(
       shrinkWrap: true,
@@ -338,10 +449,7 @@ class ReportsScreen extends StatelessWidget {
           const SizedBox(height: 6),
           Text(
             value,
-            style: const TextStyle(
-              fontSize: 26,
-              fontWeight: FontWeight.bold,
-            ),
+            style: const TextStyle(fontSize: 26, fontWeight: FontWeight.bold),
           ),
         ],
       ),
