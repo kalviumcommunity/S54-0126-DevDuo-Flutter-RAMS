@@ -517,13 +517,15 @@ class _AddStudentScreenState extends State<AddStudentScreen> {
         CustomButton(
           text: 'Cancel',
           type: ButtonType.outlined,
+          isLoading: false,
           onPressed: _isLoading ? null : () => Navigator.pop(context),
         ),
         const SizedBox(width: 12),
         CustomButton(
           text: 'Save Student',
           type: ButtonType.elevated,
-          onPressed: _isLoading ? null : _saveStudent,
+          isLoading: _isLoading,
+          onPressed: _saveStudent,
         ),
       ],
     );

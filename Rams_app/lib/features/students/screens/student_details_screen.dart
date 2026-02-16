@@ -261,7 +261,9 @@ class StudentDetailsScreen extends StatelessWidget {
             flex: 2,
             child: m != null
                 ? PassFailBadge(
-                    isPass: (m.obtainedMarks / m.maxMarks) * 100 >= 40,
+                    isPass:
+                        m.maxMarks > 0 &&
+                        (m.obtainedMarks / m.maxMarks) * 100 >= 40,
                   )
                 : const StatusBadge(
                     text: 'No Data',

@@ -451,7 +451,8 @@ class _AddMarksScreenState extends State<AddMarksScreen> {
         CustomButton(
           text: 'Save Marks',
           type: ButtonType.elevated,
-          onPressed: _isLoading ? null : _saveAllMarks,
+          isLoading: _isLoading,
+          onPressed: _saveAllMarks,
         ),
       ],
     );
