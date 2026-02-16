@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-import '../../../core/constants/app_colors.dart';
 import '../../../core/helpers/responsive_helper.dart';
+import '../../../core/widgets/widgets.dart';
 import '../../../services/student_service.dart';
 import '../../../models/student.dart';
 import '../../../models/marks.dart';
@@ -420,7 +420,11 @@ class _AddMarksScreenState extends State<AddMarksScreen> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        const Text('Notes', style: TextStyle(fontWeight: FontWeight.w600)),
+        const SectionHeader(
+          title: 'Notes',
+          fontSize: 14,
+          fontWeight: FontWeight.w600,
+        ),
         const SizedBox(height: 6),
         TextFormField(
           controller: _notesController,
@@ -438,24 +442,17 @@ class _AddMarksScreenState extends State<AddMarksScreen> {
     return Row(
       mainAxisAlignment: MainAxisAlignment.end,
       children: [
-        TextButton(
+        CustomButton(
+          text: 'Cancel',
+          type: ButtonType.outlined,
           onPressed: () => Navigator.pop(context),
-          child: const Text('Cancel'),
         ),
         const SizedBox(width: 12),
-        ElevatedButton(
-          onPressed: _isLoading ? null : _saveAllMarks,
-          style: ElevatedButton.styleFrom(backgroundColor: AppColors.primary),
-          child: _isLoading
-              ? const SizedBox(
-                  width: 20,
-                  height: 20,
-                  child: CircularProgressIndicator(
-                    strokeWidth: 2,
-                    color: Colors.white,
-                  ),
-                )
-              : const Text('Save Marks'),
+        CustomButton(
+          text: 'Save Marks',
+          type: ButtonType.elevated,
+          isLoading: _isLoading,
+          onPressed: _saveAllMarks,
         ),
       ],
     );

@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import '../../../core/constants/app_colors.dart';
 import '../../../core/helpers/responsive_helper.dart';
-import '../../../core/widgets/theme_toggle.dart';
+import '../../../core/widgets/widgets.dart';
 import '../../../services/student_service.dart';
 import '../../../models/student.dart';
 
@@ -154,9 +154,10 @@ class _StudentsScreenState extends State<StudentsScreen> {
         return Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            const Text(
-              'Filter by Class',
-              style: TextStyle(fontWeight: FontWeight.w600),
+            const SectionHeader(
+              title: 'Filter by Class',
+              fontSize: 14,
+              fontWeight: FontWeight.w600,
             ),
             const SizedBox(height: 6),
             SizedBox(
@@ -185,9 +186,10 @@ class _StudentsScreenState extends State<StudentsScreen> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        const Text(
-          'Search Students',
-          style: TextStyle(fontWeight: FontWeight.w600),
+        const SectionHeader(
+          title: 'Search Students',
+          fontSize: 14,
+          fontWeight: FontWeight.w600,
         ),
         const SizedBox(height: 6),
         TextField(

@@ -5,6 +5,7 @@ import 'package:image_picker/image_picker.dart';
 import '../../../core/constants/app_colors.dart';
 import '../../../core/helpers/responsive_helper.dart';
 import '../../../core/helpers/validation_helper.dart';
+import '../../../core/widgets/widgets.dart';
 import '../../../services/student_service.dart';
 import '../../../models/student.dart';
 
@@ -488,7 +489,11 @@ class _AddStudentScreenState extends State<AddStudentScreen> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Text('Notes', style: TextStyle(fontWeight: FontWeight.w600)),
+          const SectionHeader(
+            title: 'Notes',
+            fontSize: 14,
+            fontWeight: FontWeight.w600,
+          ),
           const SizedBox(height: 6),
           TextFormField(
             controller: _notesController,
@@ -509,24 +514,18 @@ class _AddStudentScreenState extends State<AddStudentScreen> {
     return Row(
       mainAxisAlignment: MainAxisAlignment.end,
       children: [
-        TextButton(
+        CustomButton(
+          text: 'Cancel',
+          type: ButtonType.outlined,
+          isLoading: false,
           onPressed: _isLoading ? null : () => Navigator.pop(context),
-          child: const Text('Cancel'),
         ),
         const SizedBox(width: 12),
-        ElevatedButton(
-          onPressed: _isLoading ? null : _saveStudent,
-          style: ElevatedButton.styleFrom(backgroundColor: AppColors.primary),
-          child: _isLoading
-              ? const SizedBox(
-                  height: 16,
-                  width: 16,
-                  child: CircularProgressIndicator(
-                    strokeWidth: 2,
-                    valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
-                  ),
-                )
-              : const Text('Save Student'),
+        CustomButton(
+          text: 'Save Student',
+          type: ButtonType.elevated,
+          isLoading: _isLoading,
+          onPressed: _saveStudent,
         ),
       ],
     );

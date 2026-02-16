@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import '../../../core/constants/app_colors.dart';
 import '../../../core/helpers/responsive_helper.dart';
-import '../../../core/widgets/theme_toggle.dart';
+import '../../../core/widgets/widgets.dart';
 import '../../../services/student_service.dart';
 import '../../../models/marks.dart';
 
@@ -192,10 +192,7 @@ class StudentDetailsScreen extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            const Text(
-              'Subject Marks',
-              style: TextStyle(fontWeight: FontWeight.bold),
-            ),
+            const SectionHeader(title: 'Subject Marks'),
             const SizedBox(height: 12),
             Row(
               children: const [
@@ -262,22 +259,16 @@ class StudentDetailsScreen extends StatelessWidget {
           Expanded(flex: 2, child: Text(marksText)),
           Expanded(
             flex: 2,
-            child: Container(
-              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-              decoration: BoxDecoration(
-                color: c.withOpacity(0.12),
-                borderRadius: BorderRadius.circular(20),
-              ),
-              child: Text(
-                status,
-                textAlign: TextAlign.center,
-                style: TextStyle(
-                  color: c,
-                  fontSize: 12,
-                  fontWeight: FontWeight.w600,
-                ),
-              ),
-            ),
+            child: m != null
+                ? PassFailBadge(
+                    isPass:
+                        m.maxMarks > 0 &&
+                        (m.obtainedMarks / m.maxMarks) * 100 >= 40,
+                  )
+                : const StatusBadge(
+                    text: 'No Data',
+                    status: BadgeStatus.neutral,
+                  ),
           ),
           IconButton(
             tooltip: 'Add marks',
@@ -319,85 +310,38 @@ class StudentDetailsScreen extends StatelessWidget {
           stream: _studentService.attendancePercentStreamForStudent(studentId),
           builder: (context, snapshot) {
             final percent = snapshot.data ?? 0.0;
-            return _statCard(
-              'Attendance Percentage',
-              '${percent.toStringAsFixed(1)}%',
-              context,
+            return StatCard(
+              title: 'Attendance Percentage',
+              value: '${percent.toStringAsFixed(1)}%',
             );
           },
         ),
         const SizedBox(height: 16),
-        _statCard(
-          'Overall Grade Average',
-          '${avg.toStringAsFixed(1)}%',
-          context,
+        StatCard(
+          title: 'Overall Grade Average',
+          value: '${avg.toStringAsFixed(1)}%',
         ),
         const SizedBox(height: 16),
-        _button('Edit Student Profile', Icons.edit, false, context),
+        CustomButton(
+          text: 'Edit Student Profile',
+          icon: Icons.edit,
+          type: ButtonType.elevated,
+          fullWidth: true,
+          onPressed: () {},
+        ),
         const SizedBox(height: 10),
-        _button('View Full Attendance Record', Icons.visibility, true, context),
+        CustomButton(
+          text: 'View Full Attendance Record',
+          icon: Icons.visibility,
+          type: ButtonType.outlined,
+          fullWidth: true,
+          onPressed: () {},
+        ),
       ],
     );
   }
 
-  Widget _statCard(String title, String value, BuildContext context) {
-    return Card(
-      elevation: 0,
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-      child: Padding(
-        padding: const EdgeInsets.all(16),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              title,
-              style: TextStyle(
-                color: Theme.of(context).textTheme.bodySmall?.color,
-              ),
-            ),
-            const SizedBox(height: 6),
-            Text(
-              value,
-              style: TextStyle(
-                fontSize: 28,
-                fontWeight: FontWeight.bold,
-                color: Theme.of(context).brightness == Brightness.dark
-                    ? AppColors.primaryDark
-                    : AppColors.primary,
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  Widget _button(
-    String text,
-    IconData icon,
-    bool outlined,
-    BuildContext context,
-  ) {
-    return SizedBox(
-      width: double.infinity,
-      child: outlined
-          ? OutlinedButton.icon(
-              onPressed: () {},
-              icon: Icon(icon),
-              label: Text(text),
-            )
-          : ElevatedButton.icon(
-              onPressed: () {},
-              icon: Icon(icon),
-              label: Text(text),
-              style: ElevatedButton.styleFrom(
-                backgroundColor: Theme.of(context).brightness == Brightness.dark
-                    ? AppColors.primaryDark
-                    : AppColors.primary,
-              ),
-            ),
-    );
-  }
+  // Removed _statCard and _button methods - now using reusable widgets
 }
 
 // ---------------- DATA ----------------

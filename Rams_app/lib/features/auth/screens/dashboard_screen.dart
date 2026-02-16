@@ -3,7 +3,7 @@ import '../../../auth_service.dart';
 import '../../../services/student_service.dart';
 import '../../../core/constants/app_colors.dart';
 import '../../../core/helpers/responsive_helper.dart';
-import '../../../core/widgets/theme_toggle.dart';
+import '../../../core/widgets/widgets.dart';
 
 class DashboardScreen extends StatefulWidget {
   const DashboardScreen({super.key});
@@ -188,8 +188,10 @@ class _DashboardScreenState extends State<DashboardScreen> {
               childAspectRatio: isMobile ? 2.5 : 2.8,
               physics: const NeverScrollableScrollPhysics(),
               children: [
-                _StatCard(
+                StatCard(
                   title: 'Total Students',
+                  icon: Icons.groups,
+                  isCompact: true,
                   valueWidget: StreamBuilder<int>(
                     stream: StudentService().studentsStream().map(
                       (list) => list.length,
@@ -212,10 +214,11 @@ class _DashboardScreenState extends State<DashboardScreen> {
                       );
                     },
                   ),
-                  icon: Icons.groups,
                 ),
-                _StatCard(
+                StatCard(
                   title: "Today's Attendance",
+                  icon: Icons.check_circle,
+                  isCompact: true,
                   valueWidget: StreamBuilder<double>(
                     stream: StudentService().attendancePercentForToday(),
                     builder: (context, snap) {
@@ -236,12 +239,12 @@ class _DashboardScreenState extends State<DashboardScreen> {
                       );
                     },
                   ),
-                  icon: Icons.check_circle,
                 ),
-                const _StatCard(
+                const StatCard(
                   title: 'Performance Alerts',
                   value: '5 Students',
                   icon: Icons.warning,
+                  isCompact: true,
                 ),
               ],
             ),
@@ -257,23 +260,27 @@ class _DashboardScreenState extends State<DashboardScreen> {
               childAspectRatio: isMobile ? 3 : 3.5,
               physics: const NeverScrollableScrollPhysics(),
               children: [
-                _ActionCard(
-                  title: 'Mark Attendance',
+                CustomButton(
+                  text: 'Mark Attendance',
                   icon: Icons.calendar_today,
-                  onTap: () {
+                  type: ButtonType.action,
+                  onPressed: () {
                     Navigator.of(context).pushNamed('/attendance');
                   },
                 ),
-                _ActionCard(
-                  title: 'Add Student',
+                CustomButton(
+                  text: 'Add Student',
                   icon: Icons.person_add,
-                  onTap: () {
+                  type: ButtonType.action,
+                  onPressed: () {
                     Navigator.of(context).pushNamed('/add-student');
                   },
                 ),
-                const _ActionCard(
-                  title: 'View Reports',
+                CustomButton(
+                  text: 'View Reports',
                   icon: Icons.description,
+                  type: ButtonType.action,
+                  onPressed: () {},
                 ),
               ],
             ),
@@ -296,7 +303,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
   }
 }
 
-// ---------------- NAV ITEM ----------------
+// Navigation item widget for desktop/tablet AppBar
 class _NavItem extends StatelessWidget {
   final String title;
   final bool selected;
@@ -309,112 +316,22 @@ class _NavItem extends StatelessWidget {
     return InkWell(
       onTap: onTap,
       borderRadius: BorderRadius.circular(8),
-      child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+        decoration: BoxDecoration(
+          borderRadius: BorderRadius.circular(8),
+          color: selected
+              ? AppColors.primary.withOpacity(0.1)
+              : Colors.transparent,
+        ),
         child: Text(
           title,
           style: TextStyle(
             color: selected
                 ? AppColors.primary
-                : Theme.of(context).textTheme.bodyLarge?.color,
-            fontWeight: selected ? FontWeight.bold : FontWeight.normal,
-          ),
-        ),
-      ),
-    );
-  }
-}
-
-// ---------------- STAT CARD ----------------
-class _StatCard extends StatelessWidget {
-  final String title;
-  final String? value;
-  final Widget? valueWidget;
-  final IconData icon;
-
-  const _StatCard({
-    required this.title,
-    this.value,
-    this.valueWidget,
-    required this.icon,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: Theme.of(context).cardColor,
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: Theme.of(context).dividerColor),
-      ),
-      child: Row(
-        children: [
-          Icon(icon, color: AppColors.primary, size: 28),
-          const SizedBox(width: 12),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                Text(
-                  title,
-                  style: const TextStyle(fontSize: 13, color: Colors.grey),
-                ),
-                const SizedBox(height: 4),
-                valueWidget ??
-                    Text(
-                      value ?? '',
-                      style: TextStyle(
-                        fontSize: 22,
-                        fontWeight: FontWeight.bold,
-                        color: Theme.of(context).textTheme.bodyLarge?.color,
-                      ),
-                    ),
-              ],
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-// ---------------- ACTION CARD ----------------
-class _ActionCard extends StatelessWidget {
-  final String title;
-  final IconData icon;
-  final VoidCallback? onTap;
-
-  const _ActionCard({required this.title, required this.icon, this.onTap});
-
-  @override
-  Widget build(BuildContext context) {
-    return InkWell(
-      onTap: onTap,
-      borderRadius: BorderRadius.circular(12),
-      child: Container(
-        decoration: BoxDecoration(
-          color: Theme.of(context).brightness == Brightness.dark
-              ? AppColors.primaryDark
-              : AppColors.primary,
-          borderRadius: BorderRadius.circular(12),
-        ),
-        child: Center(
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Icon(icon, color: Colors.white, size: 28),
-              const SizedBox(height: 8),
-              Text(
-                title,
-                textAlign: TextAlign.center,
-                style: const TextStyle(
-                  color: Colors.white,
-                  fontWeight: FontWeight.w600,
-                ),
-              ),
-            ],
+                : Theme.of(context).appBarTheme.foregroundColor,
+            fontWeight: selected ? FontWeight.w600 : FontWeight.w500,
+            fontSize: 14,
           ),
         ),
       ),
