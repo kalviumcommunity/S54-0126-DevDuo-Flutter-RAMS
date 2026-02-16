@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import '../../../core/constants/app_colors.dart';
 import '../../../core/helpers/responsive_helper.dart';
-import '../../../core/widgets/theme_toggle.dart';
+import '../../../core/widgets/widgets.dart';
 import '../../../services/student_service.dart';
 import '../../../models/student.dart';
 
@@ -112,7 +112,11 @@ class _AttendanceScreenState extends State<AttendanceScreen> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        const Text('Subject', style: TextStyle(fontWeight: FontWeight.w600)),
+        SectionHeader(
+          title: 'Subject',
+          fontSize: 14,
+          fontWeight: FontWeight.w600,
+        ),
         const SizedBox(height: 6),
         SizedBox(
           width: double.infinity,
