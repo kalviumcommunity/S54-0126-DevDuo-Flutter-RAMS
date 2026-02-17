@@ -6,8 +6,9 @@ import 'package:pdf/widgets.dart' as pw;
 import 'package:pdf/pdf.dart';
 import '../core/constants/app_colors.dart';
 import '../core/helpers/responsive_helper.dart';
-import '../core/helpers/validation_helper.dart';
-import '../core/widgets/theme_toggle.dart';
+import '../core/widgets/widgets.dart';
+import '../services/student_service.dart';
+import '../models/student.dart';
 
 class ReportsScreen extends StatefulWidget {
   const ReportsScreen({super.key});
@@ -17,13 +18,18 @@ class ReportsScreen extends StatefulWidget {
 }
 
 class _ReportsScreenState extends State<ReportsScreen> {
-  String? fromDate;
-  String? toDate;
-  String? selectedClass;
+  DateTime? fromDate;
+  DateTime? toDate;
+  String selectedClass = 'All Classes';
   String? selectedStudent;
 
+  final StudentService _studentService = StudentService();
+
   // ───────────────── PDF GENERATION ─────────────────
-  Future<void> _exportPdf(BuildContext context) async {
+  Future<void> _exportPdf(
+    BuildContext context,
+    Map<String, dynamic> data,
+  ) async {
     try {
       final pdf = pw.Document();
 
@@ -42,20 +48,21 @@ class _ReportsScreenState extends State<ReportsScreen> {
                   ),
                 ),
                 pw.SizedBox(height: 20),
-                pw.Text("Overall Attendance Rate: 85%"),
-                pw.Text("Total Classes Conducted: 120"),
-                pw.Text("Total Students Present: 780"),
-                pw.Text("Total Students Absent: 140"),
+                pw.Text(
+                  "Overall Attendance Rate: ${data['attendanceRate'].toStringAsFixed(1)}%",
+                ),
+                pw.Text("Total Classes Conducted: ${data['totalClasses']}"),
+                pw.Text("Total Students Present: ${data['presentCount']}"),
+                pw.Text("Total Students Absent: ${data['absentCount']}"),
                 pw.SizedBox(height: 20),
                 pw.Text(
                   "Low Attendance Alerts",
                   style: pw.TextStyle(fontWeight: pw.FontWeight.bold),
                 ),
                 pw.SizedBox(height: 10),
-                pw.Text("Priya Sharma - 68%"),
-                pw.Text("Rohan Mehta - 72%"),
-                pw.Text("Amit Kumar - 70%"),
-                pw.Text("Ananya Das - 74%"),
+                ...(data['lowAttendanceAlerts'] as List).map(
+                  (alert) => pw.Text("${alert['name']} - ${alert['rate']}%"),
+                ),
               ],
             );
           },
@@ -101,22 +108,51 @@ class _ReportsScreenState extends State<ReportsScreen> {
     return Scaffold(
       backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       appBar: _buildAppBar(context),
-      body: SingleChildScrollView(
-        padding: EdgeInsets.all(isMobile ? 16 : 20),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            _title(context, isMobile),
-            const SizedBox(height: 20),
-            _filtersCard(context),
-            const SizedBox(height: 24),
-            _statsGrid(context),
-            const SizedBox(height: 24),
-            _alertsAndActions(context),
-            const SizedBox(height: 40),
-            _footer(context),
-          ],
+      body: StreamBuilder<Map<String, dynamic>>(
+        stream: _studentService.reportsSummaryStream(
+          klass: selectedClass,
+          fromDate: fromDate,
+          toDate: toDate,
         ),
+        builder: (context, snapshot) {
+          if (!snapshot.hasData) {
+            return const LoadingIndicator();
+          }
+
+          final data = snapshot.data!;
+
+          return SingleChildScrollView(
+            padding: EdgeInsets.all(isMobile ? 16 : 20),
+            child: Center(
+              child: ConstrainedBox(
+                constraints: const BoxConstraints(maxWidth: 1100),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    _title(context, isMobile),
+                    const SizedBox(height: 20),
+                    _filtersCard(context),
+                    const SizedBox(height: 24),
+                    if (data['totalClasses'] == 0)
+                      const EmptyState(
+                        icon: Icons.analytics_outlined,
+                        title: 'No data available',
+                        message:
+                            'No attendance records found for the selected filters.',
+                      )
+                    else ...[
+                      _statsGrid(context, data),
+                      const SizedBox(height: 24),
+                      _alertsAndActions(context, data),
+                    ],
+                    const SizedBox(height: 40),
+                    _footer(context),
+                  ],
+                ),
+              ),
+            ),
+          );
+        },
       ),
     );
   }
@@ -173,76 +209,66 @@ class _ReportsScreenState extends State<ReportsScreen> {
             if (isWide)
               Row(
                 children: [
-                  _dropdown(context, "Class", selectedClass ?? "Class 10A"),
+                  _classDropdown(),
                   const SizedBox(width: 12),
-                  GestureDetector(
-                    onTap: () => _selectFromDate(context),
-                    child: _dateField(
-                      context,
-                      "From Date",
-                      fromDate ?? "Select Date",
-                    ),
-                  ),
-                  const SizedBox(width: 12),
-                  GestureDetector(
-                    onTap: () => _selectToDate(context),
-                    child: _dateField(
-                      context,
-                      "To Date",
-                      toDate ?? "Select Date",
-                    ),
-                  ),
-                  const SizedBox(width: 12),
-                  _dropdown(
+                  _dateField(
                     context,
-                    "Student",
-                    selectedStudent ?? "Select Student",
+                    "From Date",
+                    fromDate != null
+                        ? "${fromDate!.day}/${fromDate!.month}/${fromDate!.year}"
+                        : "Select Date",
+                    onTap: () => _selectDate(context, true),
                   ),
-                  const Spacer(),
-                  ElevatedButton(
-                    onPressed: _validateAndGenerateReport,
-                    child: const Text("Generate Report"),
+                  const SizedBox(width: 12),
+                  _dateField(
+                    context,
+                    "To Date",
+                    toDate != null
+                        ? "${toDate!.day}/${toDate!.month}/${toDate!.year}"
+                        : "Select Date",
+                    onTap: () => _selectDate(context, false),
+                  ),
+                  const SizedBox(width: 12),
+                  _studentDropdown(),
+                  const SizedBox(width: 12),
+                  IconButton(
+                    onPressed: _resetFilters,
+                    icon: const Icon(Icons.refresh),
+                    tooltip: 'Reset Filters',
                   ),
                 ],
               )
             else
               Column(
                 children: [
-                  _dropdownMobile(
+                  _classDropdown(),
+                  const SizedBox(height: 12),
+                  _dateField(
                     context,
-                    "Class",
-                    selectedClass ?? "Class 10A",
+                    "From Date",
+                    fromDate != null
+                        ? "${fromDate!.day}/${fromDate!.month}/${fromDate!.year}"
+                        : "Select Date",
+                    onTap: () => _selectDate(context, true),
                   ),
                   const SizedBox(height: 12),
-                  GestureDetector(
-                    onTap: () => _selectFromDate(context),
-                    child: _dateFieldMobile(
-                      context,
-                      "From Date",
-                      fromDate ?? "Select Date",
-                    ),
-                  ),
-                  const SizedBox(height: 12),
-                  GestureDetector(
-                    onTap: () => _selectToDate(context),
-                    child: _dateFieldMobile(
-                      context,
-                      "To Date",
-                      toDate ?? "Select Date",
-                    ),
-                  ),
-                  const SizedBox(height: 12),
-                  _dropdownMobile(
+                  _dateField(
                     context,
-                    "Student",
-                    selectedStudent ?? "Select Student",
+                    "To Date",
+                    toDate != null
+                        ? "${toDate!.day}/${toDate!.month}/${toDate!.year}"
+                        : "Select Date",
+                    onTap: () => _selectDate(context, false),
                   ),
+                  const SizedBox(height: 12),
+                  _studentDropdown(),
                   const SizedBox(height: 16),
                   SizedBox(
                     width: double.infinity,
-                    child: ElevatedButton(
-                      onPressed: _validateAndGenerateReport,
-                      child: const Text("Generate Report"),
+                    child: ElevatedButton.icon(
+                      onPressed: _resetFilters,
+                      icon: const Icon(Icons.refresh),
+                      label: const Text("Reset Filters"),
                     ),
                   ),
                 ],
@@ -253,168 +279,158 @@ class _ReportsScreenState extends State<ReportsScreen> {
     );
   }
 
-  Future<void> _selectFromDate(BuildContext context) async {
-    final date = await showDatePicker(
-      context: context,
-      initialDate: DateTime.now(),
-      firstDate: DateTime(2020),
-      lastDate: DateTime.now(),
-    );
+  Widget _classDropdown() {
+    return StreamBuilder<List<Student>>(
+      stream: _studentService.studentsStream(),
+      builder: (context, snapshot) {
+        final uniqueClasses = <String>{'All Classes'};
+        if (snapshot.hasData) {
+          for (final student in snapshot.data!) {
+            if (student.klass.isNotEmpty) {
+              uniqueClasses.add(student.klass);
+            }
+          }
+        }
 
-    if (date != null) {
-      setState(() {
-        fromDate = "${date.day}/${date.month}/${date.year}";
-      });
-    }
-  }
+        final classList = uniqueClasses.toList();
+        final allClassesItem = classList.removeAt(0);
+        classList.sort();
+        classList.insert(0, allClassesItem);
 
-  Future<void> _selectToDate(BuildContext context) async {
-    final date = await showDatePicker(
-      context: context,
-      initialDate: DateTime.now(),
-      firstDate: DateTime(2020),
-      lastDate: DateTime.now(),
-    );
-
-    if (date != null) {
-      setState(() {
-        toDate = "${date.day}/${date.month}/${date.year}";
-      });
-    }
-  }
-
-  void _validateAndGenerateReport() {
-    // Validate that at least one filter is selected
-    if (fromDate == null &&
-        toDate == null &&
-        selectedClass == null &&
-        selectedStudent == null) {
-      _showError('Please select at least one filter');
-      return;
-    }
-
-    // Validate date range if both dates are provided
-    if (fromDate != null && toDate != null) {
-      final error = ValidationHelper.validateDateRange(
-        fromDate,
-        toDate,
-        fromLabel: 'From Date',
-        toLabel: 'To Date',
-      );
-      if (error != null) {
-        _showError(error);
-        return;
-      }
-    }
-
-    // If all validation passes, generate report
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(
-        content: Text('Report generated successfully!'),
-        backgroundColor: Colors.green,
-      ),
-    );
-  }
-
-  void _showError(String message) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text(message), backgroundColor: Colors.red),
-    );
-  }
-
-  Widget _dropdown(BuildContext context, String label, String value) {
-    return Expanded(
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(label),
-          const SizedBox(height: 6),
-          Container(
-            padding: const EdgeInsets.symmetric(horizontal: 12),
-            height: 48,
-            decoration: BoxDecoration(
-              border: Border.all(color: Theme.of(context).dividerColor),
-              borderRadius: BorderRadius.circular(8),
-            ),
-            child: Row(
-              children: [
-                Expanded(child: Text(value)),
-                const Icon(Icons.keyboard_arrow_down),
-              ],
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _dateField(BuildContext context, String label, String value) {
-    return Expanded(
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(label),
-          const SizedBox(height: 6),
-          Container(
-            height: 48,
-            padding: const EdgeInsets.symmetric(horizontal: 12),
-            decoration: BoxDecoration(
-              border: Border.all(color: Theme.of(context).dividerColor),
-              borderRadius: BorderRadius.circular(8),
-            ),
-            child: Align(alignment: Alignment.centerLeft, child: Text(value)),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _dropdownMobile(BuildContext context, String label, String value) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text(label),
-        const SizedBox(height: 6),
-        Container(
-          width: double.infinity,
-          padding: const EdgeInsets.symmetric(horizontal: 12),
-          height: 48,
-          decoration: BoxDecoration(
-            border: Border.all(color: Theme.of(context).dividerColor),
-            borderRadius: BorderRadius.circular(8),
-          ),
-          child: Row(
+        return Expanded(
+          flex: 2,
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Expanded(child: Text(value)),
-              const Icon(Icons.keyboard_arrow_down),
+              const Text("Class", style: TextStyle(fontSize: 12)),
+              const SizedBox(height: 6),
+              DropdownButtonFormField<String>(
+                value: selectedClass,
+                decoration: const InputDecoration(
+                  border: OutlineInputBorder(),
+                  isDense: true,
+                  contentPadding: EdgeInsets.symmetric(
+                    horizontal: 12,
+                    vertical: 12,
+                  ),
+                ),
+                items: classList
+                    .map((c) => DropdownMenuItem(value: c, child: Text(c)))
+                    .toList(),
+                onChanged: (val) => setState(() => selectedClass = val!),
+              ),
             ],
           ),
-        ),
-      ],
+        );
+      },
     );
   }
 
-  Widget _dateFieldMobile(BuildContext context, String label, String value) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text(label),
-        const SizedBox(height: 6),
-        Container(
-          width: double.infinity,
-          height: 48,
-          padding: const EdgeInsets.symmetric(horizontal: 12),
-          decoration: BoxDecoration(
-            border: Border.all(color: Theme.of(context).dividerColor),
-            borderRadius: BorderRadius.circular(8),
+  Widget _studentDropdown() {
+    return StreamBuilder<List<Student>>(
+      stream: _studentService.studentsStream(klass: selectedClass),
+      builder: (context, snapshot) {
+        final List<Student> students = snapshot.data ?? [];
+
+        return Expanded(
+          flex: 2,
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              const Text("Student", style: TextStyle(fontSize: 12)),
+              const SizedBox(height: 6),
+              DropdownButtonFormField<String?>(
+                value: selectedStudent,
+                hint: const Text("Select Student"),
+                isExpanded: true,
+                decoration: const InputDecoration(
+                  border: OutlineInputBorder(),
+                  isDense: true,
+                  contentPadding: EdgeInsets.symmetric(
+                    horizontal: 12,
+                    vertical: 12,
+                  ),
+                ),
+                items: [
+                  const DropdownMenuItem<String?>(
+                    value: null,
+                    child: Text("All Students"),
+                  ),
+                  ...students.map(
+                    (s) => DropdownMenuItem<String?>(
+                      value: s.id,
+                      child: Text(s.name),
+                    ),
+                  ),
+                ],
+                onChanged: (val) => setState(() => selectedStudent = val),
+              ),
+            ],
           ),
-          child: Align(alignment: Alignment.centerLeft, child: Text(value)),
-        ),
-      ],
+        );
+      },
     );
   }
 
-  Widget _statsGrid(BuildContext context) {
+  Future<void> _selectDate(BuildContext context, bool isFrom) async {
+    final date = await showDatePicker(
+      context: context,
+      initialDate: DateTime.now(),
+      firstDate: DateTime(2020),
+      lastDate: DateTime.now(),
+    );
+
+    if (date != null) {
+      setState(() {
+        if (isFrom) {
+          fromDate = date;
+        } else {
+          toDate = date;
+        }
+      });
+    }
+  }
+
+  void _resetFilters() {
+    setState(() {
+      fromDate = null;
+      toDate = null;
+      selectedClass = 'All Classes';
+      selectedStudent = null;
+    });
+  }
+
+  Widget _dateField(
+    BuildContext context,
+    String label,
+    String value, {
+    required VoidCallback onTap,
+  }) {
+    return Expanded(
+      flex: 2,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(label, style: const TextStyle(fontSize: 12)),
+          const SizedBox(height: 6),
+          InkWell(
+            onTap: onTap,
+            child: Container(
+              height: 48,
+              padding: const EdgeInsets.symmetric(horizontal: 12),
+              decoration: BoxDecoration(
+                border: Border.all(color: Theme.of(context).dividerColor),
+                borderRadius: BorderRadius.circular(8),
+              ),
+              child: Align(alignment: Alignment.centerLeft, child: Text(value)),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _statsGrid(BuildContext context, Map<String, dynamic> data) {
     final responsive = ResponsiveHelper(context);
     final crossAxisCount = responsive.isMobile
         ? 1
@@ -427,10 +443,18 @@ class _ReportsScreenState extends State<ReportsScreen> {
       mainAxisSpacing: 12,
       physics: const NeverScrollableScrollPhysics(),
       children: [
-        _statCard(context, "Overall Attendance Rate", "85%"),
-        _statCard(context, "Total Classes Conducted", "120"),
-        _statCard(context, "Total Students Present", "780"),
-        _statCard(context, "Total Students Absent", "140"),
+        _statCard(
+          context,
+          "Overall Attendance Rate",
+          "${data['attendanceRate'].toStringAsFixed(1)}%",
+        ),
+        _statCard(
+          context,
+          "Total Classes Conducted",
+          "${data['totalClasses']}",
+        ),
+        _statCard(context, "Total Students Present", "${data['presentCount']}"),
+        _statCard(context, "Total Students Absent", "${data['absentCount']}"),
       ],
     );
   }
@@ -439,13 +463,18 @@ class _ReportsScreenState extends State<ReportsScreen> {
     return Container(
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
+        color: Theme.of(context).cardColor,
         borderRadius: BorderRadius.circular(12),
         border: Border.all(color: Theme.of(context).dividerColor),
       ),
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          Text(title.toUpperCase(), textAlign: TextAlign.center),
+          Text(
+            title.toUpperCase(),
+            textAlign: TextAlign.center,
+            style: const TextStyle(fontSize: 10, letterSpacing: 1.2),
+          ),
           const SizedBox(height: 6),
           Text(
             value,
@@ -456,7 +485,7 @@ class _ReportsScreenState extends State<ReportsScreen> {
     );
   }
 
-  Widget _alertsAndActions(BuildContext context) {
+  Widget _alertsAndActions(BuildContext context, Map<String, dynamic> data) {
     final responsive = ResponsiveHelper(context);
     final isWide = responsive.isDesktop;
 
@@ -464,7 +493,7 @@ class _ReportsScreenState extends State<ReportsScreen> {
       return Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Expanded(child: _lowAttendanceCard(context)),
+          Expanded(child: _lowAttendanceCard(context, data)),
           const SizedBox(width: 20),
           Column(
             children: [
@@ -475,7 +504,7 @@ class _ReportsScreenState extends State<ReportsScreen> {
                 Theme.of(context).brightness == Brightness.dark
                     ? AppColors.primaryDark
                     : AppColors.primary,
-                onPressed: () => _exportPdf(context),
+                onPressed: () => _exportPdf(context, data),
               ),
               const SizedBox(height: 12),
               _actionButton(
@@ -492,7 +521,7 @@ class _ReportsScreenState extends State<ReportsScreen> {
     } else {
       return Column(
         children: [
-          _lowAttendanceCard(context),
+          _lowAttendanceCard(context, data),
           const SizedBox(height: 16),
           Row(
             children: [
@@ -504,7 +533,7 @@ class _ReportsScreenState extends State<ReportsScreen> {
                   Theme.of(context).brightness == Brightness.dark
                       ? AppColors.primaryDark
                       : AppColors.primary,
-                  onPressed: () => _exportPdf(context),
+                  onPressed: () => _exportPdf(context, data),
                 ),
               ),
               const SizedBox(width: 12),
@@ -524,19 +553,46 @@ class _ReportsScreenState extends State<ReportsScreen> {
     }
   }
 
-  Widget _lowAttendanceCard(BuildContext context) {
+  Widget _lowAttendanceCard(BuildContext context, Map<String, dynamic> data) {
+    final alerts = data['lowAttendanceAlerts'] as List;
+
     return Card(
+      elevation: 0,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(12),
+        side: BorderSide(color: Theme.of(context).dividerColor),
+      ),
       child: Padding(
         padding: const EdgeInsets.all(20),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
-          children: const [
-            Text("Low Attendance Alerts"),
-            SizedBox(height: 16),
-            Text("Priya Sharma - 68%"),
-            Text("Rohan Mehta - 72%"),
-            Text("Amit Kumar - 70%"),
-            Text("Ananya Das - 74%"),
+          children: [
+            const Text(
+              "Low Attendance Alerts (< 75%)",
+              style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+            ),
+            const SizedBox(height: 16),
+            if (alerts.isEmpty)
+              const Text("No student has low attendance in this range.")
+            else
+              ...alerts.map(
+                (alert) => Padding(
+                  padding: const EdgeInsets.only(bottom: 8.0),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Text(alert['name']),
+                      Text(
+                        "${alert['rate']}%",
+                        style: const TextStyle(
+                          color: Colors.red,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
           ],
         ),
       ),
@@ -563,6 +619,7 @@ class _ReportsScreenState extends State<ReportsScreen> {
           backgroundColor: color,
           foregroundColor: Colors.white,
           padding: const EdgeInsets.symmetric(vertical: 16),
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
         ),
       ),
     );

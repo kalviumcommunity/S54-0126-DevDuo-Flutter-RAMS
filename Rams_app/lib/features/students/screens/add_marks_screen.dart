@@ -58,7 +58,7 @@ class _AddMarksScreenState extends State<AddMarksScreen> {
     }
     _rows.clear();
     super.dispose();
-  }
+  } 
 
   Future<void> _pickExamDate() async {
     final picked = await showDatePicker(

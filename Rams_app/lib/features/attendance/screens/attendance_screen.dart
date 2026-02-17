@@ -261,37 +261,13 @@ class _AttendanceScreenState extends State<AttendanceScreen> {
                 ),
                 const SizedBox(height: 16),
                 if (isLoadingStudents)
-                  Center(
-                    child: Padding(
-                      padding: const EdgeInsets.all(24.0),
-                      child: CircularProgressIndicator(),
-                    ),
-                  )
+                  const LoadingIndicator()
                 else if (selectedSubject == null)
-                  Center(
-                    child: Padding(
-                      padding: const EdgeInsets.all(32.0),
-                      child: Column(
-                        children: [
-                          Icon(
-                            Icons.subject,
-                            size: 48,
-                            color: Theme.of(context).dividerColor,
-                          ),
-                          const SizedBox(height: 12),
-                          Text(
-                            'Please select a subject to view or mark attendance',
-                            textAlign: TextAlign.center,
-                            style: TextStyle(
-                              color: Theme.of(
-                                context,
-                              ).textTheme.bodySmall?.color,
-                              fontSize: 14,
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
+                  const EmptyState(
+                    icon: Icons.subject,
+                    title: 'Select a subject',
+                    message:
+                        'Please select a subject to view or mark attendance',
                   )
                 else
                   StreamBuilder<Map<String, bool>>(
@@ -301,6 +277,9 @@ class _AttendanceScreenState extends State<AttendanceScreen> {
                       selectedSubject,
                     ),
                     builder: (context, attSnap) {
+                      if (!attSnap.hasData) {
+                        return const LoadingIndicator();
+                      }
                       final attendance = attSnap.data ?? {};
 
                       final combined = students
@@ -317,19 +296,10 @@ class _AttendanceScreenState extends State<AttendanceScreen> {
                           .toList();
 
                       if (combined.isEmpty) {
-                        return Center(
-                          child: Padding(
-                            padding: const EdgeInsets.all(32.0),
-                            child: Text(
-                              'No students found for this class',
-                              style: TextStyle(
-                                color: Theme.of(
-                                  context,
-                                ).textTheme.bodySmall?.color,
-                                fontSize: 16,
-                              ),
-                            ),
-                          ),
+                        return const EmptyState(
+                          icon: Icons.people_outline,
+                          title: 'No students found',
+                          message: 'No students found for this class.',
                         );
                       }
 

@@ -267,6 +267,108 @@ class StudentService {
         });
   }
 
+  /// Get real-time stream of reports summary data
+  Stream<Map<String, dynamic>> reportsSummaryStream({
+    String? klass,
+    DateTime? fromDate,
+    DateTime? toDate,
+  }) {
+    Query query = _attendanceCollection;
+
+    if (klass != null && klass != 'All Classes') {
+      query = query.where('class', isEqualTo: klass);
+    }
+
+    if (fromDate != null) {
+      query = query.where(
+        'date',
+        isGreaterThanOrEqualTo: Timestamp.fromDate(_normalizeDate(fromDate)),
+      );
+    }
+
+    if (toDate != null) {
+      query = query.where(
+        'date',
+        isLessThanOrEqualTo: Timestamp.fromDate(_normalizeDate(toDate)),
+      );
+    }
+
+    return query.snapshots().asyncMap((snapshot) async {
+      final totalRecords = snapshot.docs.length;
+      if (totalRecords == 0) {
+        return {
+          'attendanceRate': 0.0,
+          'totalClasses': 0,
+          'presentCount': 0,
+          'absentCount': 0,
+          'lowAttendanceAlerts': <Map<String, dynamic>>[],
+        };
+      }
+
+      int presentCount = 0;
+      int absentCount = 0;
+      final studentStats = <String, Map<String, int>>{};
+
+      for (final doc in snapshot.docs) {
+        final data = doc.data() as Map<String, dynamic>;
+        final isPresent = data['present'] as bool? ?? false;
+        final sId = data['studentId'] as String?;
+
+        if (isPresent) {
+          presentCount++;
+        } else {
+          absentCount++;
+        }
+
+        if (sId != null) {
+          studentStats.putIfAbsent(sId, () => {'total': 0, 'present': 0});
+          studentStats[sId]!['total'] = studentStats[sId]!['total']! + 1;
+          if (isPresent) {
+            studentStats[sId]!['present'] = studentStats[sId]!['present']! + 1;
+          }
+        }
+      }
+
+      final attendanceRate = (presentCount / totalRecords) * 100.0;
+
+      // Calculate low attendance alerts (< 75%)
+      final lowAttendanceAlerts = <Map<String, dynamic>>[];
+      for (final entry in studentStats.entries) {
+        final rate = (entry.value['present']! / entry.value['total']!) * 100.0;
+        if (rate < 75.0) {
+          // Fetch student name (simplified for now, ideally we'd have a map or cache)
+          final studentDoc = await _studentsCollection.doc(entry.key).get();
+          final name =
+              (studentDoc.data() as Map<String, dynamic>?)?['name'] ??
+              entry.key;
+          lowAttendanceAlerts.add({'name': name, 'rate': rate.round()});
+        }
+      }
+
+      // Count unique subjects and dates to estimate "classes conducted"
+      final uniqueSessions = <String>{};
+      for (final doc in snapshot.docs) {
+        final data = doc.data() as Map<String, dynamic>;
+        final date = (data['date'] as Timestamp).toDate();
+        final subject = data['subject'] as String?;
+        final klassName = data['class'] as String?;
+        if (subject != null && klassName != null) {
+          uniqueSessions.add(
+            '${klassName}_${subject}_${date.millisecondsSinceEpoch}',
+          );
+        }
+      }
+
+      return {
+        'attendanceRate': attendanceRate,
+        'totalClasses': uniqueSessions.length,
+        'presentCount': presentCount,
+        'absentCount': absentCount,
+        'lowAttendanceAlerts': lowAttendanceAlerts,
+      };
+    });
+  }
+
   // ============ MARKS OPERATIONS (Firebase Firestore) ============
 
   /// Save or update marks for a student

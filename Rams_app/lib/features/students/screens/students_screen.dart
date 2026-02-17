@@ -253,24 +253,12 @@ class _StudentsScreenState extends State<StudentsScreen> {
                 ),
                 const SizedBox(height: 16),
                 if (!snapshot.hasData)
-                  Center(
-                    child: Padding(
-                      padding: const EdgeInsets.all(24.0),
-                      child: CircularProgressIndicator(),
-                    ),
-                  )
+                  const LoadingIndicator()
                 else if (students.isEmpty)
-                  Center(
-                    child: Padding(
-                      padding: const EdgeInsets.all(32.0),
-                      child: Text(
-                        'No students found',
-                        style: TextStyle(
-                          color: Theme.of(context).textTheme.bodySmall?.color,
-                          fontSize: 16,
-                        ),
-                      ),
-                    ),
+                  const EmptyState(
+                    icon: Icons.people_outline,
+                    title: 'No students found',
+                    message: 'Try adjusting your filters or search query.',
                   )
                 else
                   ...students.map(_studentTile),

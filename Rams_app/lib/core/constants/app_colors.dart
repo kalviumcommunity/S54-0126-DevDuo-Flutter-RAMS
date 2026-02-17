@@ -19,6 +19,7 @@ class AppColors {
   static const textSecondaryDark = Color(0xFFB0B8C4);
   static const borderDark = Color(0xFF243240);
   static const primaryDark = Color(0xFF58B7FF);
+  static const primaryLight = Color(0xFF2DA9EF);
 
   // Status colors (work for both themes)
   static const success = Color(0xFF10B981);
