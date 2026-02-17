@@ -349,7 +349,18 @@ class StudentService {
       final uniqueSessions = <String>{};
       for (final doc in snapshot.docs) {
         final data = doc.data() as Map<String, dynamic>;
-        final date = (data['date'] as Timestamp).toDate();
+        final rawDate = data['date'];
+        if (rawDate == null) continue;
+
+        DateTime? date;
+        if (rawDate is Timestamp) {
+          date = rawDate.toDate();
+        } else if (rawDate is String) {
+          date = DateTime.tryParse(rawDate);
+        }
+
+        if (date == null) continue;
+
         final subject = data['subject'] as String?;
         final klassName = data['class'] as String?;
         if (subject != null && klassName != null) {

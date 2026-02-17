@@ -277,6 +277,11 @@ class _AttendanceScreenState extends State<AttendanceScreen> {
                       selectedSubject,
                     ),
                     builder: (context, attSnap) {
+                      if (attSnap.hasError) {
+                        return const Center(
+                          child: Text('Failed to load attendance data.'),
+                        );
+                      }
                       if (!attSnap.hasData) {
                         return const LoadingIndicator();
                       }

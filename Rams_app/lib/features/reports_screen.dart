@@ -115,6 +115,11 @@ class _ReportsScreenState extends State<ReportsScreen> {
           toDate: toDate,
         ),
         builder: (context, snapshot) {
+          if (snapshot.hasError) {
+            return const Center(
+              child: Text('Failed to load report data. Please try again.'),
+            );
+          }
           if (!snapshot.hasData) {
             return const LoadingIndicator();
           }
@@ -209,27 +214,33 @@ class _ReportsScreenState extends State<ReportsScreen> {
             if (isWide)
               Row(
                 children: [
-                  _classDropdown(),
+                  Expanded(flex: 2, child: _classDropdown()),
                   const SizedBox(width: 12),
-                  _dateField(
-                    context,
-                    "From Date",
-                    fromDate != null
-                        ? "${fromDate!.day}/${fromDate!.month}/${fromDate!.year}"
-                        : "Select Date",
-                    onTap: () => _selectDate(context, true),
+                  Expanded(
+                    flex: 2,
+                    child: _dateField(
+                      context,
+                      "From Date",
+                      fromDate != null
+                          ? "${fromDate!.day}/${fromDate!.month}/${fromDate!.year}"
+                          : "Select Date",
+                      onTap: () => _selectDate(context, true),
+                    ),
                   ),
                   const SizedBox(width: 12),
-                  _dateField(
-                    context,
-                    "To Date",
-                    toDate != null
-                        ? "${toDate!.day}/${toDate!.month}/${toDate!.year}"
-                        : "Select Date",
-                    onTap: () => _selectDate(context, false),
+                  Expanded(
+                    flex: 2,
+                    child: _dateField(
+                      context,
+                      "To Date",
+                      toDate != null
+                          ? "${toDate!.day}/${toDate!.month}/${toDate!.year}"
+                          : "Select Date",
+                      onTap: () => _selectDate(context, false),
+                    ),
                   ),
                   const SizedBox(width: 12),
-                  _studentDropdown(),
+                  Expanded(flex: 2, child: _studentDropdown()),
                   const SizedBox(width: 12),
                   IconButton(
                     onPressed: _resetFilters,
@@ -297,30 +308,36 @@ class _ReportsScreenState extends State<ReportsScreen> {
         classList.sort();
         classList.insert(0, allClassesItem);
 
-        return Expanded(
-          flex: 2,
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              const Text("Class", style: TextStyle(fontSize: 12)),
-              const SizedBox(height: 6),
-              DropdownButtonFormField<String>(
-                value: selectedClass,
-                decoration: const InputDecoration(
-                  border: OutlineInputBorder(),
-                  isDense: true,
-                  contentPadding: EdgeInsets.symmetric(
-                    horizontal: 12,
-                    vertical: 12,
-                  ),
+        return Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            const Text("Class", style: TextStyle(fontSize: 12)),
+            const SizedBox(height: 6),
+            DropdownButtonFormField<String>(
+              value: selectedClass,
+              isExpanded: true,
+              decoration: const InputDecoration(
+                border: OutlineInputBorder(),
+                isDense: true,
+                contentPadding: EdgeInsets.symmetric(
+                  horizontal: 12,
+                  vertical: 12,
                 ),
-                items: classList
-                    .map((c) => DropdownMenuItem(value: c, child: Text(c)))
-                    .toList(),
-                onChanged: (val) => setState(() => selectedClass = val!),
               ),
-            ],
-          ),
+              items: classList
+                  .map((c) => DropdownMenuItem(value: c, child: Text(c)))
+                  .toList(),
+              onChanged: (val) {
+                if (val != null) {
+                  setState(() {
+                    selectedClass = val;
+                    selectedStudent = null;
+                  });
+                }
+              },
+            ),
+          ],
         );
       },
     );
@@ -332,41 +349,42 @@ class _ReportsScreenState extends State<ReportsScreen> {
       builder: (context, snapshot) {
         final List<Student> students = snapshot.data ?? [];
 
-        return Expanded(
-          flex: 2,
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              const Text("Student", style: TextStyle(fontSize: 12)),
-              const SizedBox(height: 6),
-              DropdownButtonFormField<String?>(
-                value: selectedStudent,
-                hint: const Text("Select Student"),
-                isExpanded: true,
-                decoration: const InputDecoration(
-                  border: OutlineInputBorder(),
-                  isDense: true,
-                  contentPadding: EdgeInsets.symmetric(
-                    horizontal: 12,
-                    vertical: 12,
+        final bool valid = students.any((s) => s.id == selectedStudent);
+        final effectiveValue = valid ? selectedStudent : null;
+
+        return Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            const Text("Student", style: TextStyle(fontSize: 12)),
+            const SizedBox(height: 6),
+            DropdownButtonFormField<String?>(
+              value: effectiveValue,
+              hint: const Text("Select Student"),
+              isExpanded: true,
+              decoration: const InputDecoration(
+                border: OutlineInputBorder(),
+                isDense: true,
+                contentPadding: EdgeInsets.symmetric(
+                  horizontal: 12,
+                  vertical: 12,
+                ),
+              ),
+              items: [
+                const DropdownMenuItem<String?>(
+                  value: null,
+                  child: Text("All Students"),
+                ),
+                ...students.map(
+                  (s) => DropdownMenuItem<String?>(
+                    value: s.id,
+                    child: Text(s.name),
                   ),
                 ),
-                items: [
-                  const DropdownMenuItem<String?>(
-                    value: null,
-                    child: Text("All Students"),
-                  ),
-                  ...students.map(
-                    (s) => DropdownMenuItem<String?>(
-                      value: s.id,
-                      child: Text(s.name),
-                    ),
-                  ),
-                ],
-                onChanged: (val) => setState(() => selectedStudent = val),
-              ),
-            ],
-          ),
+              ],
+              onChanged: (val) => setState(() => selectedStudent = val),
+            ),
+          ],
         );
       },
     );
@@ -406,27 +424,25 @@ class _ReportsScreenState extends State<ReportsScreen> {
     String value, {
     required VoidCallback onTap,
   }) {
-    return Expanded(
-      flex: 2,
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(label, style: const TextStyle(fontSize: 12)),
-          const SizedBox(height: 6),
-          InkWell(
-            onTap: onTap,
-            child: Container(
-              height: 48,
-              padding: const EdgeInsets.symmetric(horizontal: 12),
-              decoration: BoxDecoration(
-                border: Border.all(color: Theme.of(context).dividerColor),
-                borderRadius: BorderRadius.circular(8),
-              ),
-              child: Align(alignment: Alignment.centerLeft, child: Text(value)),
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        Text(label, style: const TextStyle(fontSize: 12)),
+        const SizedBox(height: 6),
+        InkWell(
+          onTap: onTap,
+          child: Container(
+            height: 48,
+            padding: const EdgeInsets.symmetric(horizontal: 12),
+            decoration: BoxDecoration(
+              border: Border.all(color: Theme.of(context).dividerColor),
+              borderRadius: BorderRadius.circular(8),
             ),
+            child: Align(alignment: Alignment.centerLeft, child: Text(value)),
           ),
-        ],
-      ),
+        ),
+      ],
     );
   }
 
