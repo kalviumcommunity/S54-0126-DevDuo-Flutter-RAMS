@@ -1,4 +1,7 @@
 import 'package:flutter/material.dart';
+import '../constants/app_colors.dart';
+import '../constants/app_radius.dart';
+import '../constants/app_spacing.dart';
 
 enum BadgeStatus { success, warning, error, info, neutral }
 
@@ -18,18 +21,21 @@ class StatusBadge extends StatelessWidget {
     this.backgroundColor,
     this.textColor,
     this.fontSize = 12,
-    this.padding = const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-    this.borderRadius = 20,
+    this.padding = const EdgeInsets.symmetric(
+      horizontal: AppSpacing.badgePaddingH,
+      vertical: AppSpacing.xs,
+    ),
+    this.borderRadius = AppRadius.pill,
   });
 
   @override
   Widget build(BuildContext context) {
-    final colors = _getStatusColors(context);
+    final colors = _getStatusColors();
 
     return Container(
       padding: padding,
       decoration: BoxDecoration(
-        color: backgroundColor ?? colors.$1.withOpacity(0.12),
+        color: backgroundColor ?? colors.$2,
         borderRadius: BorderRadius.circular(borderRadius),
       ),
       child: Text(
@@ -44,13 +50,19 @@ class StatusBadge extends StatelessWidget {
     );
   }
 
-  (Color, Color) _getStatusColors(BuildContext context) {
+  (Color, Color) _getStatusColors() {
     return switch (status) {
-      BadgeStatus.success => (Colors.green, Colors.green.shade50),
-      BadgeStatus.warning => (Colors.orange, Colors.orange.shade50),
-      BadgeStatus.error => (Colors.red, Colors.red.shade50),
-      BadgeStatus.info => (Colors.blue, Colors.blue.shade50),
-      BadgeStatus.neutral => (Colors.grey, Colors.grey.shade50),
+      BadgeStatus.success => (
+        AppColors.green,
+        AppColors.green.withOpacity(0.1),
+      ),
+      BadgeStatus.warning => (
+        AppColors.orange,
+        AppColors.orange.withOpacity(0.1),
+      ),
+      BadgeStatus.error => (AppColors.red, AppColors.red.withOpacity(0.1)),
+      BadgeStatus.info => (AppColors.blue, AppColors.blue.withOpacity(0.1)),
+      BadgeStatus.neutral => (AppColors.grey, AppColors.grey.withOpacity(0.1)),
     };
   }
 }

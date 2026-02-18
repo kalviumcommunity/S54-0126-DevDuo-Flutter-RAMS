@@ -28,4 +28,13 @@ class AppColors {
   static const warningDark = Color(0xFFFBBF24);
   static const error = Color(0xFFEF4444);
   static const errorDark = Color(0xFFF87171);
+
+  // Common semantic aliases
+  static const transparent = Colors.transparent;
+  static const black = Colors.black;
+  static const grey = Colors.grey;
+  static const red = error;
+  static const green = success;
+  static const orange = warning;
+  static const blue = Color(0xFF3B82F6);
 }

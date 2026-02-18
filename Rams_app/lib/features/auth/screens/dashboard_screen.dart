@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import '../../../auth_service.dart';
 import '../../../services/student_service.dart';
 import '../../../core/constants/app_colors.dart';
+import '../../../core/constants/app_radius.dart';
+import '../../../core/constants/app_spacing.dart';
 import '../../../core/helpers/responsive_helper.dart';
 import '../../../core/widgets/widgets.dart';
 
@@ -36,15 +38,15 @@ class _DashboardScreenState extends State<DashboardScreen> {
             icon,
             size: 20,
             color: isDestructive
-                ? Colors.red
+                ? AppColors.red
                 : Theme.of(context).textTheme.bodyLarge?.color,
           ),
-          const SizedBox(width: 12),
+          const SizedBox(width: AppSpacing.md),
           Text(
             label,
             style: TextStyle(
               color: isDestructive
-                  ? Colors.red
+                  ? AppColors.red
                   : Theme.of(context).textTheme.bodyLarge?.color,
               fontWeight: FontWeight.w500,
             ),
@@ -95,7 +97,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                       position: const RelativeRect.fromLTRB(100, 60, 16, 0),
                       color: Theme.of(context).cardColor,
                       shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(12),
+                        borderRadius: BorderRadius.circular(AppRadius.lg),
                       ),
                       items: <PopupMenuEntry<void>>[
                         _buildMenuItem(
@@ -159,7 +161,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                 const ThemeToggleButton(),
                 const SizedBox(width: 8),
                 const CircleAvatar(
-                  radius: 16,
+                  radius: AppSpacing.lg,
                   child: Icon(Icons.person, size: 18),
                 ),
                 IconButton(
@@ -175,7 +177,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
 
       // ---------------- BODY ----------------
       body: SingleChildScrollView(
-        padding: EdgeInsets.all(isMobile ? 16 : 24),
+        padding: EdgeInsets.all(isMobile ? AppSpacing.lg : AppSpacing.xxl),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
@@ -183,8 +185,8 @@ class _DashboardScreenState extends State<DashboardScreen> {
             GridView.count(
               shrinkWrap: true,
               crossAxisCount: isMobile ? 1 : 3,
-              crossAxisSpacing: 16,
-              mainAxisSpacing: 16,
+              crossAxisSpacing: AppSpacing.lg,
+              mainAxisSpacing: AppSpacing.lg,
               childAspectRatio: isMobile ? 2.5 : 2.8,
               physics: const NeverScrollableScrollPhysics(),
               children: [
@@ -249,14 +251,14 @@ class _DashboardScreenState extends State<DashboardScreen> {
               ],
             ),
 
-            const SizedBox(height: 24),
+            const SizedBox(height: AppSpacing.xxl),
 
             // ----------- ACTION BUTTONS -----------
             GridView.count(
               shrinkWrap: true,
               crossAxisCount: isMobile ? 1 : 3,
-              crossAxisSpacing: 16,
-              mainAxisSpacing: 16,
+              crossAxisSpacing: AppSpacing.lg,
+              mainAxisSpacing: AppSpacing.lg,
               childAspectRatio: isMobile ? 3 : 3.5,
               physics: const NeverScrollableScrollPhysics(),
               children: [
@@ -315,14 +317,17 @@ class _NavItem extends StatelessWidget {
   Widget build(BuildContext context) {
     return InkWell(
       onTap: onTap,
-      borderRadius: BorderRadius.circular(8),
+      borderRadius: BorderRadius.circular(AppRadius.sm),
       child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+        padding: const EdgeInsets.symmetric(
+          horizontal: AppSpacing.lg,
+          vertical: AppSpacing.sm,
+        ),
         decoration: BoxDecoration(
-          borderRadius: BorderRadius.circular(8),
+          borderRadius: BorderRadius.circular(AppRadius.sm),
           color: selected
               ? AppColors.primary.withOpacity(0.1)
-              : Colors.transparent,
+              : AppColors.transparent,
         ),
         child: Text(
           title,

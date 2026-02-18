@@ -19,6 +19,7 @@ import 'features/students/screens/add_marks_screen.dart';
 
 // CORE
 import 'core/constants/app_colors.dart';
+import 'core/constants/app_radius.dart';
 import 'core/theme/theme_controller.dart';
 import 'core/widgets/theme_toggle.dart';
 
@@ -52,11 +53,11 @@ class MyApp extends StatelessWidget {
     scaffoldBackgroundColor: AppColors.background,
     fontFamily: 'Roboto',
     appBarTheme: const AppBarTheme(
-      backgroundColor: Colors.white,
+      backgroundColor: AppColors.white,
       foregroundColor: AppColors.textDark,
       elevation: 1,
     ),
-    cardColor: Colors.white,
+    cardColor: AppColors.white,
     dividerColor: AppColors.border,
     colorScheme: ColorScheme.fromSeed(seedColor: AppColors.primary),
   );
@@ -73,7 +74,9 @@ class MyApp extends StatelessWidget {
     cardTheme: CardThemeData(
       color: AppColors.cardDark,
       elevation: 0,
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(AppRadius.lg),
+      ),
     ),
     cardColor: AppColors.cardDark,
     dividerColor: AppColors.borderDark,
@@ -91,22 +94,22 @@ class MyApp extends StatelessWidget {
       fillColor: AppColors.cardDark,
       hintStyle: const TextStyle(color: AppColors.textSecondaryDark),
       border: OutlineInputBorder(
-        borderRadius: BorderRadius.circular(8),
+        borderRadius: BorderRadius.circular(AppRadius.sm),
         borderSide: const BorderSide(color: AppColors.borderDark),
       ),
       enabledBorder: OutlineInputBorder(
-        borderRadius: BorderRadius.circular(8),
+        borderRadius: BorderRadius.circular(AppRadius.sm),
         borderSide: const BorderSide(color: AppColors.borderDark),
       ),
       focusedBorder: OutlineInputBorder(
-        borderRadius: BorderRadius.circular(8),
+        borderRadius: BorderRadius.circular(AppRadius.sm),
         borderSide: const BorderSide(color: AppColors.primaryDark),
       ),
     ),
     elevatedButtonTheme: ElevatedButtonThemeData(
       style: ElevatedButton.styleFrom(
         backgroundColor: AppColors.primaryDark,
-        foregroundColor: Colors.white,
+        foregroundColor: AppColors.white,
       ),
     ),
     outlinedButtonTheme: OutlinedButtonThemeData(
@@ -117,7 +120,9 @@ class MyApp extends StatelessWidget {
     ),
     popupMenuTheme: PopupMenuThemeData(
       color: AppColors.cardDark,
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(AppRadius.lg),
+      ),
     ),
     colorScheme: ColorScheme.fromSeed(
       seedColor: AppColors.primaryDark,

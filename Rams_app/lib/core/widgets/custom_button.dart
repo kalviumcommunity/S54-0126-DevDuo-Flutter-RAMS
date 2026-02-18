@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import '../constants/app_colors.dart';
+import '../constants/app_radius.dart';
+import '../constants/app_spacing.dart';
 
 enum ButtonType { elevated, outlined, action }
 
@@ -45,7 +47,7 @@ class CustomButton extends StatelessWidget {
           (Theme.of(context).brightness == Brightness.dark
               ? AppColors.primaryDark
               : AppColors.primary),
-      foregroundColor: textColor ?? Colors.white,
+      foregroundColor: textColor ?? AppColors.white,
       elevation: elevation,
     );
 
@@ -55,13 +57,17 @@ class CustomButton extends StatelessWidget {
             height: 20,
             child: CircularProgressIndicator(
               strokeWidth: 2,
-              valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+              valueColor: AlwaysStoppedAnimation<Color>(AppColors.white),
             ),
           )
         : icon != null
         ? Row(
             mainAxisSize: MainAxisSize.min,
-            children: [Icon(icon), const SizedBox(width: 8), Text(text)],
+            children: [
+              Icon(icon),
+              const SizedBox(width: AppSpacing.sm),
+              Text(text),
+            ],
           )
         : Text(text);
 
@@ -78,13 +84,13 @@ class CustomButton extends StatelessWidget {
       foregroundColor:
           textColor ??
           (Theme.of(context).brightness == Brightness.dark
-              ? Colors.white
+              ? AppColors.white
               : AppColors.primary),
       side: BorderSide(
         color:
             textColor ??
             (Theme.of(context).brightness == Brightness.dark
-                ? Colors.white
+                ? AppColors.white
                 : AppColors.primary),
       ),
     );
@@ -98,7 +104,7 @@ class CustomButton extends StatelessWidget {
               valueColor: AlwaysStoppedAnimation<Color>(
                 textColor ??
                     (Theme.of(context).brightness == Brightness.dark
-                        ? Colors.white
+                        ? AppColors.white
                         : AppColors.primary),
               ),
             ),
@@ -106,7 +112,11 @@ class CustomButton extends StatelessWidget {
         : icon != null
         ? Row(
             mainAxisSize: MainAxisSize.min,
-            children: [Icon(icon), const SizedBox(width: 8), Text(text)],
+            children: [
+              Icon(icon),
+              const SizedBox(width: AppSpacing.sm),
+              Text(text),
+            ],
           )
         : Text(text);
 
@@ -120,7 +130,7 @@ class CustomButton extends StatelessWidget {
   Widget _buildActionButton(BuildContext context) {
     return InkWell(
       onTap: isLoading ? null : onPressed,
-      borderRadius: BorderRadius.circular(12),
+      borderRadius: BorderRadius.circular(AppRadius.lg),
       child: Container(
         decoration: BoxDecoration(
           color: isLoading
@@ -129,7 +139,7 @@ class CustomButton extends StatelessWidget {
                     (Theme.of(context).brightness == Brightness.dark
                         ? AppColors.primaryDark
                         : AppColors.primary),
-          borderRadius: BorderRadius.circular(12),
+          borderRadius: BorderRadius.circular(AppRadius.lg),
         ),
         child: Center(
           child: isLoading
@@ -139,7 +149,7 @@ class CustomButton extends StatelessWidget {
                   child: CircularProgressIndicator(
                     strokeWidth: 2,
                     valueColor: AlwaysStoppedAnimation<Color>(
-                      textColor ?? Colors.white,
+                      textColor ?? AppColors.white,
                     ),
                   ),
                 )
@@ -147,14 +157,14 @@ class CustomButton extends StatelessWidget {
                   mainAxisSize: MainAxisSize.min,
                   children: [
                     if (icon != null) ...[
-                      Icon(icon, color: textColor ?? Colors.white, size: 28),
-                      const SizedBox(height: 8),
+                      Icon(icon, color: textColor ?? AppColors.white, size: 28),
+                      const SizedBox(height: AppSpacing.sm),
                     ],
                     Text(
                       text,
                       textAlign: TextAlign.center,
                       style: TextStyle(
-                        color: textColor ?? Colors.white,
+                        color: textColor ?? AppColors.white,
                         fontWeight: FontWeight.w600,
                       ),
                     ),

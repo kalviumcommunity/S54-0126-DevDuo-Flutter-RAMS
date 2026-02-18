@@ -5,6 +5,8 @@ import 'package:path_provider/path_provider.dart';
 import 'package:pdf/widgets.dart' as pw;
 import 'package:pdf/pdf.dart';
 import '../core/constants/app_colors.dart';
+import '../core/constants/app_radius.dart';
+import '../core/constants/app_spacing.dart';
 import '../core/helpers/responsive_helper.dart';
 import '../core/widgets/widgets.dart';
 import '../services/student_service.dart';
@@ -127,7 +129,7 @@ class _ReportsScreenState extends State<ReportsScreen> {
           final data = snapshot.data!;
 
           return SingleChildScrollView(
-            padding: EdgeInsets.all(isMobile ? 16 : 20),
+            padding: EdgeInsets.all(isMobile ? AppSpacing.lg : AppSpacing.xl),
             child: Center(
               child: ConstrainedBox(
                 constraints: const BoxConstraints(maxWidth: 1100),
@@ -135,9 +137,9 @@ class _ReportsScreenState extends State<ReportsScreen> {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     _title(context, isMobile),
-                    const SizedBox(height: 20),
+                    const SizedBox(height: AppSpacing.xl),
                     _filtersCard(context),
-                    const SizedBox(height: 24),
+                    const SizedBox(height: AppSpacing.xxl),
                     if (data['totalClasses'] == 0)
                       const EmptyState(
                         icon: Icons.analytics_outlined,
@@ -147,7 +149,7 @@ class _ReportsScreenState extends State<ReportsScreen> {
                       )
                     else ...[
                       _statsGrid(context, data),
-                      const SizedBox(height: 24),
+                      const SizedBox(height: AppSpacing.xxl),
                       _alertsAndActions(context, data),
                     ],
                     const SizedBox(height: 40),
@@ -196,9 +198,11 @@ class _ReportsScreenState extends State<ReportsScreen> {
 
     return Card(
       elevation: 0,
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(AppRadius.lg),
+      ),
       child: Padding(
-        padding: const EdgeInsets.all(20),
+        padding: const EdgeInsets.all(AppSpacing.xl),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
@@ -210,12 +214,12 @@ class _ReportsScreenState extends State<ReportsScreen> {
                 color: Theme.of(context).textTheme.bodyLarge?.color,
               ),
             ),
-            const SizedBox(height: 16),
+            const SizedBox(height: AppSpacing.lg),
             if (isWide)
               Row(
                 children: [
                   Expanded(flex: 2, child: _classDropdown()),
-                  const SizedBox(width: 12),
+                  const SizedBox(width: AppSpacing.md),
                   Expanded(
                     flex: 2,
                     child: _dateField(
@@ -227,7 +231,7 @@ class _ReportsScreenState extends State<ReportsScreen> {
                       onTap: () => _selectDate(context, true),
                     ),
                   ),
-                  const SizedBox(width: 12),
+                  const SizedBox(width: AppSpacing.md),
                   Expanded(
                     flex: 2,
                     child: _dateField(
@@ -239,9 +243,9 @@ class _ReportsScreenState extends State<ReportsScreen> {
                       onTap: () => _selectDate(context, false),
                     ),
                   ),
-                  const SizedBox(width: 12),
+                  const SizedBox(width: AppSpacing.md),
                   Expanded(flex: 2, child: _studentDropdown()),
-                  const SizedBox(width: 12),
+                  const SizedBox(width: AppSpacing.md),
                   IconButton(
                     onPressed: _resetFilters,
                     icon: const Icon(Icons.refresh),
@@ -253,7 +257,7 @@ class _ReportsScreenState extends State<ReportsScreen> {
               Column(
                 children: [
                   _classDropdown(),
-                  const SizedBox(height: 12),
+                  const SizedBox(height: AppSpacing.md),
                   _dateField(
                     context,
                     "From Date",
@@ -262,7 +266,7 @@ class _ReportsScreenState extends State<ReportsScreen> {
                         : "Select Date",
                     onTap: () => _selectDate(context, true),
                   ),
-                  const SizedBox(height: 12),
+                  const SizedBox(height: AppSpacing.md),
                   _dateField(
                     context,
                     "To Date",
@@ -271,9 +275,9 @@ class _ReportsScreenState extends State<ReportsScreen> {
                         : "Select Date",
                     onTap: () => _selectDate(context, false),
                   ),
-                  const SizedBox(height: 12),
+                  const SizedBox(height: AppSpacing.md),
                   _studentDropdown(),
-                  const SizedBox(height: 16),
+                  const SizedBox(height: AppSpacing.lg),
                   SizedBox(
                     width: double.infinity,
                     child: ElevatedButton.icon(
@@ -313,7 +317,7 @@ class _ReportsScreenState extends State<ReportsScreen> {
           mainAxisSize: MainAxisSize.min,
           children: [
             const Text("Class", style: TextStyle(fontSize: 12)),
-            const SizedBox(height: 6),
+            const SizedBox(height: AppSpacing.xs),
             DropdownButtonFormField<String>(
               value: selectedClass,
               isExpanded: true,
@@ -321,8 +325,8 @@ class _ReportsScreenState extends State<ReportsScreen> {
                 border: OutlineInputBorder(),
                 isDense: true,
                 contentPadding: EdgeInsets.symmetric(
-                  horizontal: 12,
-                  vertical: 12,
+                  horizontal: AppSpacing.md,
+                  vertical: AppSpacing.md,
                 ),
               ),
               items: classList
@@ -357,7 +361,7 @@ class _ReportsScreenState extends State<ReportsScreen> {
           mainAxisSize: MainAxisSize.min,
           children: [
             const Text("Student", style: TextStyle(fontSize: 12)),
-            const SizedBox(height: 6),
+            const SizedBox(height: AppSpacing.xs),
             DropdownButtonFormField<String?>(
               value: effectiveValue,
               hint: const Text("Select Student"),
@@ -366,8 +370,8 @@ class _ReportsScreenState extends State<ReportsScreen> {
                 border: OutlineInputBorder(),
                 isDense: true,
                 contentPadding: EdgeInsets.symmetric(
-                  horizontal: 12,
-                  vertical: 12,
+                  horizontal: AppSpacing.md,
+                  vertical: AppSpacing.md,
                 ),
               ),
               items: [
@@ -429,15 +433,15 @@ class _ReportsScreenState extends State<ReportsScreen> {
       mainAxisSize: MainAxisSize.min,
       children: [
         Text(label, style: const TextStyle(fontSize: 12)),
-        const SizedBox(height: 6),
+        const SizedBox(height: AppSpacing.xs),
         InkWell(
           onTap: onTap,
           child: Container(
             height: 48,
-            padding: const EdgeInsets.symmetric(horizontal: 12),
+            padding: const EdgeInsets.symmetric(horizontal: AppSpacing.md),
             decoration: BoxDecoration(
               border: Border.all(color: Theme.of(context).dividerColor),
-              borderRadius: BorderRadius.circular(8),
+              borderRadius: BorderRadius.circular(AppRadius.sm),
             ),
             child: Align(alignment: Alignment.centerLeft, child: Text(value)),
           ),
@@ -455,8 +459,8 @@ class _ReportsScreenState extends State<ReportsScreen> {
     return GridView.count(
       shrinkWrap: true,
       crossAxisCount: crossAxisCount,
-      crossAxisSpacing: 12,
-      mainAxisSpacing: 12,
+      crossAxisSpacing: AppSpacing.md,
+      mainAxisSpacing: AppSpacing.md,
       physics: const NeverScrollableScrollPhysics(),
       children: [
         _statCard(
@@ -477,10 +481,10 @@ class _ReportsScreenState extends State<ReportsScreen> {
 
   Widget _statCard(BuildContext context, String title, String value) {
     return Container(
-      padding: const EdgeInsets.all(20),
+      padding: const EdgeInsets.all(AppSpacing.xl),
       decoration: BoxDecoration(
         color: Theme.of(context).cardColor,
-        borderRadius: BorderRadius.circular(12),
+        borderRadius: BorderRadius.circular(AppRadius.lg),
         border: Border.all(color: Theme.of(context).dividerColor),
       ),
       child: Column(
@@ -527,7 +531,7 @@ class _ReportsScreenState extends State<ReportsScreen> {
                 context,
                 "Print Report",
                 Icons.print,
-                Colors.green,
+                AppColors.green,
                 onPressed: () {},
               ),
             ],
@@ -558,7 +562,7 @@ class _ReportsScreenState extends State<ReportsScreen> {
                   context,
                   "Print Report",
                   Icons.print,
-                  Colors.green,
+                  AppColors.green,
                   onPressed: () {},
                 ),
               ),
@@ -575,11 +579,11 @@ class _ReportsScreenState extends State<ReportsScreen> {
     return Card(
       elevation: 0,
       shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(12),
+        borderRadius: BorderRadius.circular(AppRadius.lg),
         side: BorderSide(color: Theme.of(context).dividerColor),
       ),
       child: Padding(
-        padding: const EdgeInsets.all(20),
+        padding: const EdgeInsets.all(AppSpacing.xl),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
@@ -587,13 +591,13 @@ class _ReportsScreenState extends State<ReportsScreen> {
               "Low Attendance Alerts (< 75%)",
               style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
             ),
-            const SizedBox(height: 16),
+            const SizedBox(height: AppSpacing.lg),
             if (alerts.isEmpty)
               const Text("No student has low attendance in this range.")
             else
               ...alerts.map(
                 (alert) => Padding(
-                  padding: const EdgeInsets.only(bottom: 8.0),
+                  padding: const EdgeInsets.only(bottom: AppSpacing.sm),
                   child: Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
@@ -601,7 +605,7 @@ class _ReportsScreenState extends State<ReportsScreen> {
                       Text(
                         "${alert['rate']}%",
                         style: const TextStyle(
-                          color: Colors.red,
+                          color: AppColors.red,
                           fontWeight: FontWeight.bold,
                         ),
                       ),
@@ -633,9 +637,11 @@ class _ReportsScreenState extends State<ReportsScreen> {
         label: Text(text),
         style: ElevatedButton.styleFrom(
           backgroundColor: color,
-          foregroundColor: Colors.white,
-          padding: const EdgeInsets.symmetric(vertical: 16),
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+          foregroundColor: AppColors.white,
+          padding: const EdgeInsets.symmetric(vertical: AppSpacing.lg),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(AppRadius.sm),
+          ),
         ),
       ),
     );
