@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import '../../../core/constants/app_colors.dart';
+import '../../../core/constants/app_radius.dart';
+import '../../../core/constants/app_spacing.dart';
 import '../../../core/helpers/responsive_helper.dart';
 import '../../../core/widgets/widgets.dart';
 import '../../../services/student_service.dart';
@@ -25,7 +27,7 @@ class StudentDetailsScreen extends StatelessWidget {
           backgroundColor: Theme.of(context).scaffoldBackgroundColor,
           appBar: _buildAppBar(context),
           body: SingleChildScrollView(
-            padding: const EdgeInsets.all(16),
+            padding: const EdgeInsets.all(AppSpacing.lg),
             child: Center(
               child: ConstrainedBox(
                 constraints: const BoxConstraints(maxWidth: 1200),
@@ -63,7 +65,7 @@ class StudentDetailsScreen extends StatelessWidget {
                                         marksList,
                                       ),
                                     ),
-                                    const SizedBox(width: 16),
+                                    const SizedBox(width: AppSpacing.lg),
                                     Expanded(
                                       flex: 1,
                                       child: _rightColumn(
@@ -77,7 +79,7 @@ class StudentDetailsScreen extends StatelessWidget {
                               : Column(
                                   children: [
                                     _leftColumn(context, student, marksList),
-                                    const SizedBox(height: 16),
+                                    const SizedBox(height: AppSpacing.lg),
                                     _rightColumn(context, student, marksList),
                                   ],
                                 );
@@ -117,9 +119,9 @@ class StudentDetailsScreen extends StatelessWidget {
     return Column(
       children: [
         _studentHeader(context, student),
-        const SizedBox(height: 16),
+        const SizedBox(height: AppSpacing.lg),
         _subjectMarksCard(context, student, marksList),
-        const SizedBox(height: 16),
+        const SizedBox(height: AppSpacing.lg),
       ],
     );
   }
@@ -127,13 +129,15 @@ class StudentDetailsScreen extends StatelessWidget {
   Widget _studentHeader(BuildContext context, Map<String, dynamic> student) {
     return Card(
       elevation: 0,
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(AppRadius.lg),
+      ),
       child: Padding(
-        padding: const EdgeInsets.all(16),
+        padding: const EdgeInsets.all(AppSpacing.lg),
         child: Row(
           children: [
             _buildStudentDetailsAvatar(student),
-            const SizedBox(width: 12),
+            const SizedBox(width: AppSpacing.md),
             Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
@@ -173,7 +177,7 @@ class StudentDetailsScreen extends StatelessWidget {
               debugPrint('Failed to load student profile image: $exception');
             }
           : null,
-      child: hasImage ? null : const Icon(Icons.person, color: Colors.white),
+      child: hasImage ? null : const Icon(Icons.person, color: AppColors.white),
     );
   }
 
@@ -186,14 +190,16 @@ class StudentDetailsScreen extends StatelessWidget {
   ) {
     return Card(
       elevation: 0,
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(AppRadius.lg),
+      ),
       child: Padding(
-        padding: const EdgeInsets.all(16),
+        padding: const EdgeInsets.all(AppSpacing.lg),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             const SectionHeader(title: 'Subject Marks'),
-            const SizedBox(height: 12),
+            const SizedBox(height: AppSpacing.md),
             Row(
               children: const [
                 Expanded(flex: 3, child: _Header('SUBJECT')),
@@ -242,17 +248,15 @@ class StudentDetailsScreen extends StatelessWidget {
   ) {
     String marksText = '- / -';
     String status = 'No Data';
-    Color c = Colors.grey;
 
     if (m != null) {
       final double percent = (m.obtainedMarks / m.maxMarks) * 100;
       marksText = '${m.obtainedMarks.toInt()}/${m.maxMarks.toInt()}';
       status = percent >= 40 ? 'Pass' : 'Fail';
-      c = percent >= 40 ? Colors.green : Colors.red;
     }
 
     return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 6),
+      padding: const EdgeInsets.symmetric(vertical: AppSpacing.xs),
       child: Row(
         children: [
           Expanded(flex: 3, child: Text(subjectName)),
@@ -316,12 +320,12 @@ class StudentDetailsScreen extends StatelessWidget {
             );
           },
         ),
-        const SizedBox(height: 16),
+        const SizedBox(height: AppSpacing.lg),
         StatCard(
           title: 'Overall Grade Average',
           value: '${avg.toStringAsFixed(1)}%',
         ),
-        const SizedBox(height: 16),
+        const SizedBox(height: AppSpacing.lg),
         CustomButton(
           text: 'Edit Student Profile',
           icon: Icons.edit,
@@ -329,7 +333,7 @@ class StudentDetailsScreen extends StatelessWidget {
           fullWidth: true,
           onPressed: () {},
         ),
-        const SizedBox(height: 10),
+        const SizedBox(height: AppSpacing.md),
         CustomButton(
           text: 'View Full Attendance Record',
           icon: Icons.visibility,

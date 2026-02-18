@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import '../constants/app_radius.dart';
+import '../constants/app_spacing.dart';
 
 class CustomTextField extends StatelessWidget {
   final String hint;
@@ -13,7 +15,7 @@ class CustomTextField extends StatelessWidget {
     this.isPassword = false,
     this.controller,
     this.validator,
-    this.isReadOnly = false
+    this.isReadOnly = false,
   });
 
   @override
@@ -28,19 +30,19 @@ class CustomTextField extends StatelessWidget {
         filled: true,
         fillColor: Theme.of(context).cardColor,
         contentPadding: const EdgeInsets.symmetric(
-          horizontal: 16,
+          horizontal: AppSpacing.lg,
           vertical: 14,
         ),
         border: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(8),
+          borderRadius: BorderRadius.circular(AppRadius.sm),
           borderSide: BorderSide(color: Theme.of(context).dividerColor),
         ),
         enabledBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(8),
+          borderRadius: BorderRadius.circular(AppRadius.sm),
           borderSide: BorderSide(color: Theme.of(context).dividerColor),
         ),
         focusedBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(8),
+          borderRadius: BorderRadius.circular(AppRadius.sm),
           borderSide: BorderSide(color: Theme.of(context).primaryColor),
         ),
       ),

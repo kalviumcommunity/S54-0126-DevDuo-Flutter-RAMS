@@ -1,4 +1,7 @@
 import 'package:flutter/material.dart';
+import '../../../core/constants/app_colors.dart';
+import '../../../core/constants/app_radius.dart';
+import '../../../core/constants/app_spacing.dart';
 import '../../../core/helpers/responsive_helper.dart';
 import '../../../core/widgets/widgets.dart';
 import '../../../services/student_service.dart';
@@ -58,7 +61,7 @@ class _AddMarksScreenState extends State<AddMarksScreen> {
     }
     _rows.clear();
     super.dispose();
-  } 
+  }
 
   Future<void> _pickExamDate() async {
     final picked = await showDatePicker(
@@ -126,7 +129,7 @@ class _AddMarksScreenState extends State<AddMarksScreen> {
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
               content: Text('$savedCount mark(s) uploaded successfully'),
-              backgroundColor: Colors.green,
+              backgroundColor: AppColors.green,
             ),
           );
           Navigator.pop(context);
@@ -144,7 +147,7 @@ class _AddMarksScreenState extends State<AddMarksScreen> {
             content: Text(
               'Failed to save marks. Please check your entries and try again.',
             ),
-            backgroundColor: Colors.red,
+            backgroundColor: AppColors.red,
           ),
         );
       }
@@ -162,24 +165,24 @@ class _AddMarksScreenState extends State<AddMarksScreen> {
       backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       appBar: AppBar(title: const Text('Upload Marks'), elevation: 1),
       body: SingleChildScrollView(
-        padding: EdgeInsets.all(isMobile ? 16 : 24),
+        padding: EdgeInsets.all(isMobile ? AppSpacing.lg : AppSpacing.xxl),
         child: Center(
           child: ConstrainedBox(
             constraints: const BoxConstraints(maxWidth: 900),
             child: Form(
               key: _formKey,
               child: Container(
-                padding: const EdgeInsets.all(20),
+                padding: const EdgeInsets.all(AppSpacing.xl),
                 decoration: BoxDecoration(
                   color: Theme.of(context).cardColor,
-                  borderRadius: BorderRadius.circular(12),
+                  borderRadius: BorderRadius.circular(AppRadius.lg),
                   border: Border.all(color: Theme.of(context).dividerColor),
                 ),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     _topSelectors(isMobile),
-                    const SizedBox(height: 20),
+                    const SizedBox(height: AppSpacing.xl),
                     const Text(
                       'Marks Entry',
                       style: TextStyle(
@@ -187,19 +190,19 @@ class _AddMarksScreenState extends State<AddMarksScreen> {
                         fontWeight: FontWeight.w600,
                       ),
                     ),
-                    const SizedBox(height: 12),
+                    const SizedBox(height: AppSpacing.md),
                     ..._rows.map((row) => _marksRow(row, isMobile)),
-                    const SizedBox(height: 8),
+                    const SizedBox(height: AppSpacing.sm),
                     TextButton.icon(
                       onPressed: () => setState(() => _rows.add(_MarksRow())),
                       icon: const Icon(Icons.add),
                       label: const Text('Add Row'),
                     ),
-                    const SizedBox(height: 16),
+                    const SizedBox(height: AppSpacing.lg),
                     _examDate(),
-                    const SizedBox(height: 16),
+                    const SizedBox(height: AppSpacing.lg),
                     _notes(),
-                    const SizedBox(height: 24),
+                    const SizedBox(height: AppSpacing.xxl),
                     _actions(),
                   ],
                 ),
@@ -242,8 +245,8 @@ class _AddMarksScreenState extends State<AddMarksScreen> {
             : students.where((s) => s.klass == _selectedClass).toList();
 
         return Wrap(
-          spacing: 12,
-          runSpacing: 12,
+          spacing: AppSpacing.md,
+          runSpacing: AppSpacing.md,
           children: [
             _dropdown('Class *', _selectedClass, uniqueClasses, (v) {
               setState(() {
@@ -286,7 +289,7 @@ class _AddMarksScreenState extends State<AddMarksScreen> {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           _labelWithAsterisk(label),
-          const SizedBox(height: 6),
+          const SizedBox(height: AppSpacing.xs),
           DropdownButtonFormField<String>(
             initialValue: value,
             decoration: const InputDecoration(isDense: true),
@@ -324,7 +327,7 @@ class _AddMarksScreenState extends State<AddMarksScreen> {
         children: const [
           TextSpan(
             text: ' *',
-            style: TextStyle(color: Colors.red),
+            style: TextStyle(color: AppColors.red),
           ),
         ],
       ),
@@ -334,7 +337,7 @@ class _AddMarksScreenState extends State<AddMarksScreen> {
   // ---------------- MARKS ROW ----------------
   Widget _marksRow(_MarksRow row, bool isMobile) {
     return Padding(
-      padding: const EdgeInsets.only(bottom: 12),
+      padding: const EdgeInsets.only(bottom: AppSpacing.md),
       child: Row(
         children: [
           Expanded(
@@ -346,7 +349,7 @@ class _AddMarksScreenState extends State<AddMarksScreen> {
                   v == null || v.trim().isEmpty ? 'Required' : null,
             ),
           ),
-          const SizedBox(width: 8),
+          const SizedBox(width: AppSpacing.sm),
           Expanded(
             child: TextFormField(
               controller: row.max,
@@ -362,7 +365,7 @@ class _AddMarksScreenState extends State<AddMarksScreen> {
               },
             ),
           ),
-          const SizedBox(width: 8),
+          const SizedBox(width: AppSpacing.sm),
           Expanded(
             child: TextFormField(
               controller: row.obtained,
@@ -380,7 +383,7 @@ class _AddMarksScreenState extends State<AddMarksScreen> {
               },
             ),
           ),
-          const SizedBox(width: 8),
+          const SizedBox(width: AppSpacing.sm),
           IconButton(
             onPressed: () {
               setState(() {
@@ -388,7 +391,7 @@ class _AddMarksScreenState extends State<AddMarksScreen> {
                 row.dispose();
               });
             },
-            icon: const Icon(Icons.remove_circle, color: Colors.red),
+            icon: const Icon(Icons.remove_circle, color: AppColors.red),
           ),
         ],
       ),
@@ -401,7 +404,7 @@ class _AddMarksScreenState extends State<AddMarksScreen> {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         _labelWithAsterisk('Exam Date *'),
-        const SizedBox(height: 6),
+        const SizedBox(height: AppSpacing.xs),
         TextFormField(
           controller: _examDateController,
           readOnly: true,
@@ -425,7 +428,7 @@ class _AddMarksScreenState extends State<AddMarksScreen> {
           fontSize: 14,
           fontWeight: FontWeight.w600,
         ),
-        const SizedBox(height: 6),
+        const SizedBox(height: AppSpacing.xs),
         TextFormField(
           controller: _notesController,
           maxLines: 4,
@@ -447,7 +450,7 @@ class _AddMarksScreenState extends State<AddMarksScreen> {
           type: ButtonType.outlined,
           onPressed: () => Navigator.pop(context),
         ),
-        const SizedBox(width: 12),
+        const SizedBox(width: AppSpacing.md),
         CustomButton(
           text: 'Save Marks',
           type: ButtonType.elevated,

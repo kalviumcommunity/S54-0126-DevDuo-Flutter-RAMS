@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import '../../../core/constants/app_colors.dart';
+import '../../../core/constants/app_radius.dart';
+import '../../../core/constants/app_spacing.dart';
 import '../../../core/helpers/responsive_helper.dart';
 import '../../../core/widgets/widgets.dart';
 import '../../../services/student_service.dart';
@@ -57,7 +59,7 @@ class _StudentsScreenState extends State<StudentsScreen> {
           backgroundColor: Theme.of(context).scaffoldBackgroundColor,
           appBar: _buildAppBar(context),
           body: SingleChildScrollView(
-            padding: const EdgeInsets.all(16),
+            padding: const EdgeInsets.all(AppSpacing.lg),
             child: Center(
               child: ConstrainedBox(
                 constraints: const BoxConstraints(maxWidth: 1100),
@@ -65,7 +67,7 @@ class _StudentsScreenState extends State<StudentsScreen> {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     _buildFilterCard(isWide),
-                    const SizedBox(height: 16),
+                    const SizedBox(height: AppSpacing.lg),
                     _buildStudentListCard(),
                   ],
                 ),
@@ -99,22 +101,24 @@ class _StudentsScreenState extends State<StudentsScreen> {
 
   Widget _buildFilterCard(bool isWide) {
     return Card(
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(AppRadius.lg),
+      ),
       elevation: 0,
       child: Padding(
-        padding: const EdgeInsets.all(16),
+        padding: const EdgeInsets.all(AppSpacing.lg),
         child: isWide
             ? Row(
                 children: [
                   Expanded(child: _classDropdown()),
-                  const SizedBox(width: 16),
+                  const SizedBox(width: AppSpacing.lg),
                   Expanded(child: _searchBar()),
                 ],
               )
             : Column(
                 children: [
                   _classDropdown(),
-                  const SizedBox(height: 12),
+                  const SizedBox(height: AppSpacing.md),
                   _searchBar(),
                 ],
               ),
@@ -159,7 +163,7 @@ class _StudentsScreenState extends State<StudentsScreen> {
               fontSize: 14,
               fontWeight: FontWeight.w600,
             ),
-            const SizedBox(height: 6),
+            const SizedBox(height: AppSpacing.xs),
             SizedBox(
               width: double.infinity,
               child: DropdownButtonFormField<String>(
@@ -191,7 +195,7 @@ class _StudentsScreenState extends State<StudentsScreen> {
           fontSize: 14,
           fontWeight: FontWeight.w600,
         ),
-        const SizedBox(height: 6),
+        const SizedBox(height: AppSpacing.xs),
         TextField(
           decoration: const InputDecoration(
             border: OutlineInputBorder(),
@@ -217,11 +221,11 @@ class _StudentsScreenState extends State<StudentsScreen> {
 
         return Card(
           shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(12),
+            borderRadius: BorderRadius.circular(AppRadius.lg),
           ),
           elevation: 0,
           child: Padding(
-            padding: const EdgeInsets.all(16),
+            padding: const EdgeInsets.all(AppSpacing.lg),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
@@ -251,7 +255,7 @@ class _StudentsScreenState extends State<StudentsScreen> {
                     color: Theme.of(context).textTheme.bodySmall?.color,
                   ),
                 ),
-                const SizedBox(height: 16),
+                const SizedBox(height: AppSpacing.lg),
                 if (!snapshot.hasData)
                   const LoadingIndicator()
                 else if (students.isEmpty)
@@ -275,21 +279,21 @@ class _StudentsScreenState extends State<StudentsScreen> {
       onTap: () {
         Navigator.of(context).pushNamed('/student-details', arguments: student);
       },
-      borderRadius: BorderRadius.circular(10),
+      borderRadius: BorderRadius.circular(AppRadius.md),
       child: Container(
-        margin: const EdgeInsets.only(bottom: 10),
-        padding: const EdgeInsets.all(12),
+        margin: const EdgeInsets.only(bottom: AppSpacing.md),
+        padding: const EdgeInsets.all(AppSpacing.md),
         decoration: BoxDecoration(
           color: Theme.of(context).brightness == Brightness.dark
               ? AppColors.surfaceDark
               : const Color(0xFFF9FAFB),
-          borderRadius: BorderRadius.circular(10),
-          border: Border.all(color: Colors.transparent),
+          borderRadius: BorderRadius.circular(AppRadius.md),
+          border: Border.all(color: AppColors.transparent),
         ),
         child: Row(
           children: [
             _buildStudentAvatar(student),
-            const SizedBox(width: 12),
+            const SizedBox(width: AppSpacing.md),
             Expanded(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -308,15 +312,15 @@ class _StudentsScreenState extends State<StudentsScreen> {
                           fontSize: 12,
                         ),
                       ),
-                      const SizedBox(width: 8),
+                      const SizedBox(width: AppSpacing.sm),
                       Container(
                         padding: const EdgeInsets.symmetric(
-                          horizontal: 8,
+                          horizontal: AppSpacing.sm,
                           vertical: 2,
                         ),
                         decoration: BoxDecoration(
                           color: AppColors.primary.withValues(alpha: 0.1),
-                          borderRadius: BorderRadius.circular(4),
+                          borderRadius: BorderRadius.circular(AppSpacing.xs),
                         ),
                         child: Text(
                           student['class'],
@@ -359,7 +363,7 @@ class _StudentsScreenState extends State<StudentsScreen> {
           : null,
       child: hasImage
           ? null
-          : const Icon(Icons.person, color: Colors.white, size: 20),
+          : const Icon(Icons.person, color: AppColors.white, size: 20),
     );
   }
 }

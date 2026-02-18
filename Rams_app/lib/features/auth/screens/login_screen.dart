@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import '../../../auth_service.dart';
 import '../../../core/constants/app_colors.dart';
+import '../../../core/constants/app_radius.dart';
+import '../../../core/constants/app_spacing.dart';
 import '../../../core/widgets/custom_text_field.dart';
 
 class LoginScreen extends StatefulWidget {
@@ -75,13 +77,13 @@ class _LoginScreenState extends State<LoginScreen> {
         child: SingleChildScrollView(
           child: Container(
             width: 380,
-            padding: const EdgeInsets.all(24),
+            padding: const EdgeInsets.all(AppSpacing.xxl),
             decoration: BoxDecoration(
               color: Theme.of(context).cardColor,
-              borderRadius: BorderRadius.circular(12),
+              borderRadius: BorderRadius.circular(AppRadius.lg),
               boxShadow: [
                 BoxShadow(
-                  color: Colors.black.withValues(alpha: 0.05),
+                  color: AppColors.black.withValues(alpha: 0.05),
                   blurRadius: 12,
                 ),
               ],
@@ -97,12 +99,12 @@ class _LoginScreenState extends State<LoginScreen> {
                     width: 48,
                     decoration: BoxDecoration(
                       color: AppColors.primary,
-                      borderRadius: BorderRadius.circular(8),
+                      borderRadius: BorderRadius.circular(AppRadius.sm),
                     ),
-                    child: const Icon(Icons.school, color: Colors.white),
+                    child: const Icon(Icons.school, color: AppColors.white),
                   ),
 
-                  const SizedBox(height: 16),
+                  const SizedBox(height: AppSpacing.lg),
 
                   // Title
                   Text(
@@ -114,7 +116,7 @@ class _LoginScreenState extends State<LoginScreen> {
                     ),
                   ),
 
-                  const SizedBox(height: 24),
+                  const SizedBox(height: AppSpacing.xxl),
 
                   // Email
                   CustomTextField(
@@ -124,7 +126,7 @@ class _LoginScreenState extends State<LoginScreen> {
                     isReadOnly: true,
                   ),
 
-                  const SizedBox(height: 16),
+                  const SizedBox(height: AppSpacing.lg),
 
                   // Password
                   CustomTextField(
@@ -134,15 +136,18 @@ class _LoginScreenState extends State<LoginScreen> {
                     validator: _validatePassword,
                   ),
 
-                  const SizedBox(height: 24),
+                  const SizedBox(height: AppSpacing.xxl),
 
                   // Error message
                   if (_errorMessage != null)
                     Padding(
-                      padding: const EdgeInsets.only(bottom: 16),
+                      padding: const EdgeInsets.only(bottom: AppSpacing.lg),
                       child: Text(
                         _errorMessage!,
-                        style: const TextStyle(color: Colors.red, fontSize: 12),
+                        style: const TextStyle(
+                          color: AppColors.red,
+                          fontSize: 12,
+                        ),
                         textAlign: TextAlign.center,
                       ),
                     ),
@@ -158,7 +163,7 @@ class _LoginScreenState extends State<LoginScreen> {
                             ? AppColors.primaryDark
                             : AppColors.primary,
                         shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(8),
+                          borderRadius: BorderRadius.circular(AppRadius.sm),
                         ),
                       ),
                       onPressed: _isLoading ? null : _login,
@@ -169,7 +174,7 @@ class _LoginScreenState extends State<LoginScreen> {
                               child: CircularProgressIndicator(
                                 strokeWidth: 2,
                                 valueColor: AlwaysStoppedAnimation<Color>(
-                                  Colors.white,
+                                  AppColors.white,
                                 ),
                               ),
                             )
@@ -177,19 +182,19 @@ class _LoginScreenState extends State<LoginScreen> {
                               'Login',
                               style: TextStyle(
                                 fontSize: 16,
-                                color: Colors.white,
+                                color: AppColors.white,
                               ),
                             ),
                     ),
                   ),
 
-                  const SizedBox(height: 16),
+                  const SizedBox(height: AppSpacing.lg),
 
-                  const SizedBox(height: 16),
+                  const SizedBox(height: AppSpacing.lg),
 
                   const Text(
                     '© 2026 RAMS. All rights reserved.',
-                    style: TextStyle(fontSize: 12, color: Colors.grey),
+                    style: TextStyle(fontSize: 12, color: AppColors.grey),
                     textAlign: TextAlign.center,
                   ),
                 ],

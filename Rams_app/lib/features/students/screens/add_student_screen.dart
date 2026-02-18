@@ -3,6 +3,8 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import '../../../core/constants/app_colors.dart';
+import '../../../core/constants/app_radius.dart';
+import '../../../core/constants/app_spacing.dart';
 import '../../../core/helpers/responsive_helper.dart';
 import '../../../core/helpers/validation_helper.dart';
 import '../../../core/widgets/widgets.dart';
@@ -89,7 +91,7 @@ class _AddStudentScreenState extends State<AddStudentScreen> {
               content: Text(
                 'Student ID "$trimmedStudentId" is already in use. Please use a unique ID.',
               ),
-              backgroundColor: Colors.red,
+              backgroundColor: AppColors.red,
             ),
           );
         }
@@ -111,7 +113,7 @@ class _AddStudentScreenState extends State<AddStudentScreen> {
             ScaffoldMessenger.of(context).showSnackBar(
               SnackBar(
                 content: Text(dateRangeError),
-                backgroundColor: Colors.red,
+                backgroundColor: AppColors.red,
               ),
             );
           }
@@ -139,7 +141,7 @@ class _AddStudentScreenState extends State<AddStudentScreen> {
                 content: Text(
                   'Error uploading photo. Continuing without photo.',
                 ),
-                backgroundColor: Colors.orange,
+                backgroundColor: AppColors.orange,
               ),
             );
           }
@@ -170,7 +172,7 @@ class _AddStudentScreenState extends State<AddStudentScreen> {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
             content: Text('Student added successfully!'),
-            backgroundColor: Colors.green,
+            backgroundColor: AppColors.green,
           ),
         );
         Navigator.pop(context);
@@ -180,7 +182,7 @@ class _AddStudentScreenState extends State<AddStudentScreen> {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text('Error creating student: ${e.toString()}'),
-            backgroundColor: Colors.red,
+            backgroundColor: AppColors.red,
           ),
         );
       }
@@ -198,24 +200,24 @@ class _AddStudentScreenState extends State<AddStudentScreen> {
       backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       appBar: AppBar(elevation: 1, title: const Text('Add Student')),
       body: SingleChildScrollView(
-        padding: EdgeInsets.all(isMobile ? 16 : 24),
+        padding: EdgeInsets.all(isMobile ? AppSpacing.lg : AppSpacing.xxl),
         child: Center(
           child: ConstrainedBox(
             constraints: const BoxConstraints(maxWidth: 520),
             child: Form(
               key: _formKey,
               child: Container(
-                padding: const EdgeInsets.all(20),
+                padding: const EdgeInsets.all(AppSpacing.xl),
                 decoration: BoxDecoration(
                   color: Theme.of(context).cardColor,
-                  borderRadius: BorderRadius.circular(12),
+                  borderRadius: BorderRadius.circular(AppRadius.lg),
                   border: Border.all(color: Theme.of(context).dividerColor),
                 ),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     _photoUpload(),
-                    const SizedBox(height: 20),
+                    const SizedBox(height: AppSpacing.xl),
 
                     _input(
                       'Full Name',
@@ -260,12 +262,12 @@ class _AddStudentScreenState extends State<AddStudentScreen> {
                     ),
                     _notes(),
 
-                    const SizedBox(height: 12),
+                    const SizedBox(height: AppSpacing.md),
                     const Text(
                       'Fields marked with * are required.',
-                      style: TextStyle(fontSize: 12, color: Colors.grey),
+                      style: TextStyle(fontSize: 12, color: AppColors.grey),
                     ),
-                    const SizedBox(height: 20),
+                    const SizedBox(height: AppSpacing.xl),
                     _actions(context),
                   ],
                 ),
@@ -285,23 +287,23 @@ class _AddStudentScreenState extends State<AddStudentScreen> {
           'Upload Photo',
           style: TextStyle(fontWeight: FontWeight.w600),
         ),
-        const SizedBox(height: 4),
+        const SizedBox(height: AppSpacing.xs),
         const Text(
           'Optional',
-          style: TextStyle(fontSize: 12, color: Colors.grey),
+          style: TextStyle(fontSize: 12, color: AppColors.grey),
         ),
-        const SizedBox(height: 8),
+        const SizedBox(height: AppSpacing.sm),
         GestureDetector(
           onTap: _pickImage,
           child: Container(
             height: 120,
             width: 120,
             decoration: BoxDecoration(
-              borderRadius: BorderRadius.circular(12),
+              borderRadius: BorderRadius.circular(AppRadius.lg),
               border: Border.all(
                 color: _profileImage != null
                     ? AppColors.primary
-                    : Colors.grey.shade300,
+                    : Theme.of(context).dividerColor,
                 width: _profileImage != null ? 2 : 1,
               ),
               image: _profileImage != null
@@ -315,18 +317,18 @@ class _AddStudentScreenState extends State<AddStudentScreen> {
                 ? const Column(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
-                      Icon(Icons.camera_alt, color: Colors.grey, size: 32),
-                      SizedBox(height: 4),
+                      Icon(Icons.camera_alt, color: AppColors.grey, size: 32),
+                      SizedBox(height: AppSpacing.xs),
                       Text(
                         'Tap to upload',
-                        style: TextStyle(fontSize: 12, color: Colors.grey),
+                        style: TextStyle(fontSize: 12, color: AppColors.grey),
                       ),
                     ],
                   )
                 : null,
           ),
         ),
-        const SizedBox(height: 8),
+        const SizedBox(height: AppSpacing.sm),
         Row(
           children: [
             Expanded(
@@ -335,14 +337,14 @@ class _AddStudentScreenState extends State<AddStudentScreen> {
                 children: const [
                   Text(
                     'JPG, PNG, up to 5MB',
-                    style: TextStyle(fontSize: 12, color: Colors.grey),
+                    style: TextStyle(fontSize: 12, color: AppColors.grey),
                   ),
-                  SizedBox(height: 4),
+                  SizedBox(height: AppSpacing.xs),
                   Text(
                     'Will be displayed on all student views',
                     style: TextStyle(
                       fontSize: 11,
-                      color: Colors.grey,
+                      color: AppColors.grey,
                       fontStyle: FontStyle.italic,
                     ),
                   ),
@@ -368,12 +370,12 @@ class _AddStudentScreenState extends State<AddStudentScreen> {
     String? Function(String?)? validator,
   }) {
     return Padding(
-      padding: const EdgeInsets.only(bottom: 14),
+      padding: const EdgeInsets.only(bottom: AppSpacing.md),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(label, style: const TextStyle(fontWeight: FontWeight.w600)),
-          const SizedBox(height: 6),
+          const SizedBox(height: AppSpacing.xs),
           TextFormField(
             controller: controller,
             readOnly: true,
@@ -383,7 +385,7 @@ class _AddStudentScreenState extends State<AddStudentScreen> {
               hintText: hint,
               suffixIcon: const Icon(Icons.calendar_today, size: 18),
               border: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(8),
+                borderRadius: BorderRadius.circular(AppRadius.sm),
               ),
               isDense: true,
             ),
@@ -401,7 +403,7 @@ class _AddStudentScreenState extends State<AddStudentScreen> {
     String? Function(String?)? validator,
   }) {
     return Padding(
-      padding: const EdgeInsets.only(bottom: 14),
+      padding: const EdgeInsets.only(bottom: AppSpacing.md),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -410,28 +412,28 @@ class _AddStudentScreenState extends State<AddStudentScreen> {
               text: label,
               style: TextStyle(
                 color: Theme.of(context).brightness == Brightness.dark
-                    ? Colors.white
-                    : Colors.black,
+                    ? AppColors.white
+                    : AppColors.black,
                 fontWeight: FontWeight.w600,
               ),
               children: required
                   ? const [
                       TextSpan(
                         text: ' *',
-                        style: TextStyle(color: Colors.red),
+                        style: TextStyle(color: AppColors.red),
                       ),
                     ]
                   : [],
             ),
           ),
-          const SizedBox(height: 6),
+          const SizedBox(height: AppSpacing.xs),
           TextFormField(
             controller: controller,
             validator: validator,
             decoration: InputDecoration(
               hintText: hint,
               border: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(8),
+                borderRadius: BorderRadius.circular(AppRadius.sm),
               ),
               isDense: true,
             ),
@@ -443,7 +445,7 @@ class _AddStudentScreenState extends State<AddStudentScreen> {
 
   Widget _dropdown(String label, List<String> items) {
     return Padding(
-      padding: const EdgeInsets.only(bottom: 14),
+      padding: const EdgeInsets.only(bottom: AppSpacing.md),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -452,19 +454,19 @@ class _AddStudentScreenState extends State<AddStudentScreen> {
               text: label,
               style: TextStyle(
                 color: Theme.of(context).brightness == Brightness.dark
-                    ? Colors.white
-                    : Colors.black,
+                    ? AppColors.white
+                    : AppColors.black,
                 fontWeight: FontWeight.w600,
               ),
               children: const [
                 TextSpan(
                   text: ' *',
-                  style: TextStyle(color: Colors.red),
+                  style: TextStyle(color: AppColors.red),
                 ),
               ],
             ),
           ),
-          const SizedBox(height: 6),
+          const SizedBox(height: AppSpacing.xs),
           DropdownButtonFormField<String>(
             initialValue: _selectedClass,
             items: items
@@ -473,7 +475,7 @@ class _AddStudentScreenState extends State<AddStudentScreen> {
             onChanged: (val) => setState(() => _selectedClass = val!),
             decoration: InputDecoration(
               border: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(8),
+                borderRadius: BorderRadius.circular(AppRadius.sm),
               ),
               isDense: true,
             ),
@@ -485,7 +487,7 @@ class _AddStudentScreenState extends State<AddStudentScreen> {
 
   Widget _notes() {
     return Padding(
-      padding: const EdgeInsets.only(bottom: 14),
+      padding: const EdgeInsets.only(bottom: AppSpacing.md),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -494,14 +496,14 @@ class _AddStudentScreenState extends State<AddStudentScreen> {
             fontSize: 14,
             fontWeight: FontWeight.w600,
           ),
-          const SizedBox(height: 6),
+          const SizedBox(height: AppSpacing.xs),
           TextFormField(
             controller: _notesController,
             maxLines: 4,
             decoration: InputDecoration(
               hintText: 'Add any additional notes about the student here.',
               border: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(8),
+                borderRadius: BorderRadius.circular(AppRadius.sm),
               ),
             ),
           ),
@@ -520,7 +522,7 @@ class _AddStudentScreenState extends State<AddStudentScreen> {
           isLoading: false,
           onPressed: _isLoading ? null : () => Navigator.pop(context),
         ),
-        const SizedBox(width: 12),
+        const SizedBox(width: AppSpacing.md),
         CustomButton(
           text: 'Save Student',
           type: ButtonType.elevated,

@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import '../../../core/constants/app_colors.dart';
+import '../../../core/constants/app_radius.dart';
+import '../../../core/constants/app_spacing.dart';
 import '../../../core/helpers/responsive_helper.dart';
 import '../../../core/widgets/widgets.dart';
 import '../../../services/student_service.dart';
@@ -38,7 +40,7 @@ class _AttendanceScreenState extends State<AttendanceScreen> {
           backgroundColor: Theme.of(context).scaffoldBackgroundColor,
           appBar: _buildAppBar(context),
           body: SingleChildScrollView(
-            padding: const EdgeInsets.all(16),
+            padding: const EdgeInsets.all(AppSpacing.lg),
             child: Center(
               child: ConstrainedBox(
                 constraints: const BoxConstraints(maxWidth: 1100),
@@ -46,9 +48,9 @@ class _AttendanceScreenState extends State<AttendanceScreen> {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     _buildSelectCard(isWide),
-                    const SizedBox(height: 16),
+                    const SizedBox(height: AppSpacing.lg),
                     _buildStudentCard(),
-                    const SizedBox(height: 24),
+                    const SizedBox(height: AppSpacing.xxl),
                     _buildBottomActions(isWide),
                   ],
                 ),
@@ -81,26 +83,28 @@ class _AttendanceScreenState extends State<AttendanceScreen> {
 
   Widget _buildSelectCard(bool isWide) {
     return Card(
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(AppRadius.lg),
+      ),
       elevation: 0,
       child: Padding(
-        padding: const EdgeInsets.all(16),
+        padding: const EdgeInsets.all(AppSpacing.lg),
         child: isWide
             ? Row(
                 children: [
                   Expanded(child: _classDropdown()),
-                  const SizedBox(width: 16),
+                  const SizedBox(width: AppSpacing.lg),
                   Expanded(child: _subjectDropdown()),
-                  const SizedBox(width: 16),
+                  const SizedBox(width: AppSpacing.lg),
                   Expanded(child: _datePicker()),
                 ],
               )
             : Column(
                 children: [
                   _classDropdown(),
-                  const SizedBox(height: 12),
+                  const SizedBox(height: AppSpacing.md),
                   _subjectDropdown(),
-                  const SizedBox(height: 12),
+                  const SizedBox(height: AppSpacing.md),
                   _datePicker(),
                 ],
               ),
@@ -117,7 +121,7 @@ class _AttendanceScreenState extends State<AttendanceScreen> {
           fontSize: 14,
           fontWeight: FontWeight.w600,
         ),
-        const SizedBox(height: 6),
+        const SizedBox(height: AppSpacing.xs),
         SizedBox(
           width: double.infinity,
           child: DropdownButtonFormField<String>(
@@ -170,7 +174,7 @@ class _AttendanceScreenState extends State<AttendanceScreen> {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             const Text('Class', style: TextStyle(fontWeight: FontWeight.w600)),
-            const SizedBox(height: 6),
+            const SizedBox(height: AppSpacing.xs),
             SizedBox(
               width: double.infinity,
               child: DropdownButtonFormField<String>(
@@ -198,7 +202,7 @@ class _AttendanceScreenState extends State<AttendanceScreen> {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         const Text('Date', style: TextStyle(fontWeight: FontWeight.w600)),
-        const SizedBox(height: 6),
+        const SizedBox(height: AppSpacing.xs),
         SizedBox(
           width: double.infinity,
           child: InkWell(
@@ -240,11 +244,11 @@ class _AttendanceScreenState extends State<AttendanceScreen> {
 
         return Card(
           shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(12),
+            borderRadius: BorderRadius.circular(AppRadius.lg),
           ),
           elevation: 0,
           child: Padding(
-            padding: const EdgeInsets.all(16),
+            padding: const EdgeInsets.all(AppSpacing.lg),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
@@ -252,14 +256,14 @@ class _AttendanceScreenState extends State<AttendanceScreen> {
                   'Student List',
                   style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
                 ),
-                const SizedBox(height: 6),
+                const SizedBox(height: AppSpacing.xs),
                 Text(
                   'Mark students as Present or Absent for the selected class and date.',
                   style: TextStyle(
                     color: Theme.of(context).textTheme.bodySmall?.color,
                   ),
                 ),
-                const SizedBox(height: 16),
+                const SizedBox(height: AppSpacing.lg),
                 if (isLoadingStudents)
                   const LoadingIndicator()
                 else if (selectedSubject == null)
@@ -323,18 +327,18 @@ class _AttendanceScreenState extends State<AttendanceScreen> {
 
   Widget _studentTile(Map<String, dynamic> student) {
     return Container(
-      margin: const EdgeInsets.only(bottom: 10),
-      padding: const EdgeInsets.all(12),
+      margin: const EdgeInsets.only(bottom: AppSpacing.md),
+      padding: const EdgeInsets.all(AppSpacing.md),
       decoration: BoxDecoration(
         color: Theme.of(context).brightness == Brightness.dark
             ? AppColors.surfaceDark
             : const Color(0xFFF9FAFB),
-        borderRadius: BorderRadius.circular(10),
+        borderRadius: BorderRadius.circular(AppRadius.md),
       ),
       child: Row(
         children: [
           const CircleAvatar(radius: 20, child: Icon(Icons.person)),
-          const SizedBox(width: 12),
+          const SizedBox(width: AppSpacing.md),
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -356,7 +360,7 @@ class _AttendanceScreenState extends State<AttendanceScreen> {
           Text(
             student['present'] ? 'Present' : 'Absent',
             style: TextStyle(
-              color: student['present'] ? Colors.green : Colors.grey,
+              color: student['present'] ? AppColors.green : AppColors.grey,
               fontWeight: FontWeight.w500,
             ),
           ),
@@ -403,7 +407,10 @@ class _AttendanceScreenState extends State<AttendanceScreen> {
             backgroundColor: Theme.of(context).brightness == Brightness.dark
                 ? AppColors.primaryDark
                 : AppColors.primary,
-            padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 14),
+            padding: const EdgeInsets.symmetric(
+              horizontal: AppSpacing.xxl,
+              vertical: 14,
+            ),
           ),
           onPressed: selectedSubject == null
               ? null

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../constants/app_colors.dart';
+import '../constants/app_spacing.dart';
 
 class LoadingIndicator extends StatelessWidget {
   final double padding;
@@ -8,7 +9,7 @@ class LoadingIndicator extends StatelessWidget {
 
   const LoadingIndicator({
     super.key,
-    this.padding = 24.0,
+    this.padding = AppSpacing.xxl,
     this.size = 36.0,
     this.color,
   });
@@ -34,6 +35,3 @@ class LoadingIndicator extends StatelessWidget {
     );
   }
 }
-
-// Add primaryLight to AppColors if it's missing, or use primaryDark
-// Let me check AppColors again.
