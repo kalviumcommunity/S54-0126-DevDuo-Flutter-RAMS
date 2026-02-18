@@ -22,7 +22,7 @@ class StatusBadge extends StatelessWidget {
     this.textColor,
     this.fontSize = 12,
     this.padding = const EdgeInsets.symmetric(
-      horizontal: AppSpacing.md,
+      horizontal: AppSpacing.badgePaddingH,
       vertical: AppSpacing.xs,
     ),
     this.borderRadius = AppRadius.pill,
@@ -30,12 +30,12 @@ class StatusBadge extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final colors = _getStatusColors(context);
+    final colors = _getStatusColors();
 
     return Container(
       padding: padding,
       decoration: BoxDecoration(
-        color: backgroundColor ?? colors.$1.withOpacity(0.12),
+        color: backgroundColor ?? colors.$2,
         borderRadius: BorderRadius.circular(borderRadius),
       ),
       child: Text(
@@ -50,7 +50,7 @@ class StatusBadge extends StatelessWidget {
     );
   }
 
-  (Color, Color) _getStatusColors(BuildContext context) {
+  (Color, Color) _getStatusColors() {
     return switch (status) {
       BadgeStatus.success => (
         AppColors.green,
