@@ -380,11 +380,12 @@ class _AttendanceScreenState extends State<AttendanceScreen> {
                       );
                     } catch (e) {
                       // show a simple feedback if something fails
-                      if (context.mounted) {
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          SnackBar(content: Text('Failed to save attendance')),
-                        );
-                      }
+                      if (!mounted) return;
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        const SnackBar(
+                          content: Text('Failed to save attendance'),
+                        ),
+                      );
                     }
                   }
                 : null,

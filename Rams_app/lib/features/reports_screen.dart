@@ -319,7 +319,7 @@ class _ReportsScreenState extends State<ReportsScreen> {
             const Text("Class", style: TextStyle(fontSize: 12)),
             const SizedBox(height: AppSpacing.xs),
             DropdownButtonFormField<String>(
-              value: selectedClass,
+              initialValue: selectedClass,
               isExpanded: true,
               decoration: const InputDecoration(
                 border: OutlineInputBorder(),
@@ -363,7 +363,7 @@ class _ReportsScreenState extends State<ReportsScreen> {
             const Text("Student", style: TextStyle(fontSize: 12)),
             const SizedBox(height: AppSpacing.xs),
             DropdownButtonFormField<String?>(
-              value: effectiveValue,
+              initialValue: effectiveValue,
               hint: const Text("Select Student"),
               isExpanded: true,
               decoration: const InputDecoration(
