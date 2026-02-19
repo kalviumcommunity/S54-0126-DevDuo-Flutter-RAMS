@@ -395,7 +395,7 @@ class _LegendDot extends StatelessWidget {
 class _AcademicChartPainter extends CustomPainter {
   final BuildContext context;
   final List<Marks> marks;
-  _AcademicChartPainter(this.context, this.marks);
+  const _AcademicChartPainter(this.context, this.marks);
 
   @override
   void paint(Canvas canvas, Size size) {
@@ -410,7 +410,7 @@ class _AcademicChartPainter extends CustomPainter {
 
     // Grid lines for 0, 20, 40, 60, 80, 100
     final gridPaint = Paint()
-      ..color = Theme.of(context).dividerColor.withOpacity(0.5)
+      ..color = Theme.of(context).dividerColor.withValues(alpha: 0.5)
       ..strokeWidth = 1;
 
     for (int i = 0; i <= 5; i++) {

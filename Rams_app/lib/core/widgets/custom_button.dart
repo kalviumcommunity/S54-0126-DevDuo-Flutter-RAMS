@@ -134,7 +134,7 @@ class CustomButton extends StatelessWidget {
       child: Container(
         decoration: BoxDecoration(
           color: isLoading
-              ? Colors.grey.withOpacity(0.3)
+              ? Colors.grey.withValues(alpha: 0.3)
               : backgroundColor ??
                     (Theme.of(context).brightness == Brightness.dark
                         ? AppColors.primaryDark

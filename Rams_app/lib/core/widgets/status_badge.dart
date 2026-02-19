@@ -54,15 +54,24 @@ class StatusBadge extends StatelessWidget {
     return switch (status) {
       BadgeStatus.success => (
         AppColors.green,
-        AppColors.green.withOpacity(0.1),
+        AppColors.green.withValues(alpha: 0.1),
       ),
       BadgeStatus.warning => (
         AppColors.orange,
-        AppColors.orange.withOpacity(0.1),
+        AppColors.orange.withValues(alpha: 0.1),
       ),
-      BadgeStatus.error => (AppColors.red, AppColors.red.withOpacity(0.1)),
-      BadgeStatus.info => (AppColors.blue, AppColors.blue.withOpacity(0.1)),
-      BadgeStatus.neutral => (AppColors.grey, AppColors.grey.withOpacity(0.1)),
+      BadgeStatus.error => (
+        AppColors.red,
+        AppColors.red.withValues(alpha: 0.1),
+      ),
+      BadgeStatus.info => (
+        AppColors.blue,
+        AppColors.blue.withValues(alpha: 0.1),
+      ),
+      BadgeStatus.neutral => (
+        AppColors.grey,
+        AppColors.grey.withValues(alpha: 0.1),
+      ),
     };
   }
 }
