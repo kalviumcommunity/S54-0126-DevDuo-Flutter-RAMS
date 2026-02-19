@@ -341,7 +341,7 @@ class _AddStudentScreenState extends State<AddStudentScreen> {
                   ),
                   SizedBox(height: AppSpacing.xs),
                   Text(
-                    'Will be displayed on all student views',
+                    'Will be displayed on each and every student views',
                     style: TextStyle(
                       fontSize: 11,
                       color: AppColors.grey,
